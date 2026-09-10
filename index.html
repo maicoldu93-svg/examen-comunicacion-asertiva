@@ -921,6 +921,10 @@ let userAnswers = [];
 let studentName = "";
 let timeLeft = 5 * 60;
 let timerInterval;
+let resultsSent = false;
+
+// URL de tu Google Apps Script
+const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbxshXdz0iX4Svan4vgfpU9WZjNBuql01ARC8tVNuUXhap_fiL3yHFAPs6021XV2PQz8/exec";
 
 
 /* ================================
@@ -1128,6 +1132,9 @@ function updateTimer() {
 
 function finishExam() {
 
+    if (resultsSent) return;
+    resultsSent = true;
+
     clearInterval(timerInterval);
 
     let correct = 0;
@@ -1169,6 +1176,29 @@ function finishExam() {
 
     document.getElementById("finalScore")
         .textContent = grade.toFixed(2);
+
+    // Enviar automáticamente el resultado a Google Sheets.
+    const timeUsedSeconds = (5 * 60) - Math.max(timeLeft, 0);
+    const timeUsed = `${Math.floor(timeUsedSeconds / 60)}:${String(timeUsedSeconds % 60).padStart(2, "0")}`;
+
+    const resultData = {
+        nombre: studentName,
+        aciertos: correct,
+        nota: grade.toFixed(2),
+        porcentaje: percentage.toFixed(1),
+        tiempo: timeUsed
+    };
+
+    fetch(GOOGLE_SHEETS_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: {
+            "Content-Type": "text/plain;charset=utf-8"
+        },
+        body: JSON.stringify(resultData)
+    }).catch(error => {
+        console.error("No se pudo enviar el resultado:", error);
+    });
 
 }
 
