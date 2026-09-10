@@ -241,9 +241,10 @@ button:hover {
     </p>
 
     <ul>
-        <li>50 preguntas de selección múltiple.</li>
+        <li>El banco contiene 50 preguntas.</li>
+        <li>Recibirás 10 preguntas seleccionadas aleatoriamente.</li>
         <li>Solo una respuesta correcta por pregunta.</li>
-        <li>Tiempo máximo: 30 minutos.</li>
+        <li>Tiempo máximo: 5 minutos.</li>
         <li>La calificación será de 0.0 a 5.0.</li>
     </ul>
 
@@ -268,11 +269,11 @@ button:hover {
     <div class="top-bar">
 
         <div class="progress-text" id="progressText">
-            Pregunta 1 de 50
+            Pregunta 1 de 10
         </div>
 
         <div class="timer" id="timer">
-            ⏱️ 30:00
+            ⏱️ 5:00
         </div>
 
     </div>
@@ -321,7 +322,7 @@ button:hover {
 
             <p>
                 <b>Aciertos:</b>
-                <span id="correctAnswers"></span> / 50
+                <span id="correctAnswers"></span> / 10
             </p>
 
             <p>
@@ -352,7 +353,7 @@ button:hover {
 <script>
 
 /* ================================
-   BANCO DE PREGUNTAS
+   BANCO DE PREGUNTAS (50)
 ================================ */
 
 const questions = [
@@ -915,9 +916,10 @@ answer: 2
 ================================ */
 
 let currentQuestion = 0;
+let examQuestions = [];
 let userAnswers = [];
 let studentName = "";
-let timeLeft = 30 * 60;
+let timeLeft = 5 * 60;
 let timerInterval;
 
 
@@ -941,8 +943,15 @@ function startExam() {
     document.getElementById("examScreen")
         .classList.remove("hidden");
 
+    // Seleccionar 10 preguntas diferentes al azar del banco de 50
+    examQuestions = [...questions]
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 10);
+
+    currentQuestion = 0;
+
     userAnswers =
-        new Array(questions.length).fill(null);
+        new Array(examQuestions.length).fill(null);
 
     showQuestion();
 
@@ -957,14 +966,14 @@ function startExam() {
 
 function showQuestion() {
 
-    const question = questions[currentQuestion];
+    const question = examQuestions[currentQuestion];
 
     document.getElementById("progressText")
         .textContent =
-        `Pregunta ${currentQuestion + 1} de ${questions.length}`;
+        `Pregunta ${currentQuestion + 1} de ${examQuestions.length}`;
 
     const percentage =
-        ((currentQuestion + 1) / questions.length) * 100;
+        ((currentQuestion + 1) / examQuestions.length) * 100;
 
     document.getElementById("progress")
         .style.width = percentage + "%";
@@ -1003,7 +1012,7 @@ function showQuestion() {
     const nextButton =
         document.getElementById("nextBtn");
 
-    if (currentQuestion === questions.length - 1) {
+    if (currentQuestion === examQuestions.length - 1) {
 
         nextButton.textContent = "✓ Finalizar examen";
         nextButton.className = "finish-btn";
@@ -1044,7 +1053,7 @@ function nextQuestion() {
 
     }
 
-    if (currentQuestion === questions.length - 1) {
+    if (currentQuestion === examQuestions.length - 1) {
 
         finishExam();
         return;
@@ -1123,7 +1132,7 @@ function finishExam() {
 
     let correct = 0;
 
-    questions.forEach((question, index) => {
+    examQuestions.forEach((question, index) => {
 
         if (userAnswers[index] === question.answer) {
 
@@ -1134,10 +1143,10 @@ function finishExam() {
     });
 
     const percentage =
-        (correct / questions.length) * 100;
+        (correct / examQuestions.length) * 100;
 
     const grade =
-        (correct / questions.length) * 5;
+        (correct / examQuestions.length) * 5;
 
     document.getElementById("examScreen")
         .classList.add("hidden");
