@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Examen - Comunicación Asertiva</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    min-height: 100vh;
+    color: #222;
+}
+
+.container {
+    width: 95%;
+    max-width: 850px;
+    margin: auto;
+    padding: 25px 0;
+}
+
+.card {
+    background: white;
+    border-radius: 22px;
+    padding: 30px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+}
+
+h1 {
+    text-align: center;
+    margin-top: 0;
+    color: #5a4fcf;
+}
+
+.subtitle {
+    text-align: center;
+    color: #666;
+    margin-bottom: 30px;
+}
+
+input {
+    width: 100%;
+    padding: 15px;
+    border: 2px solid #ddd;
+    border-radius: 12px;
+    font-size: 17px;
+    margin: 10px 0 20px;
+}
+
+button {
+    border: none;
+    border-radius: 12px;
+    padding: 14px 25px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+button:hover {
+    transform: scale(1.03);
+}
+
+.start-btn {
+    width: 100%;
+    background: #5a4fcf;
+    color: white;
+}
+
+.top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    gap: 10px;
+}
+
+.progress-text {
+    font-weight: bold;
+}
+
+.timer {
+    background: #f1f1f1;
+    padding: 10px 15px;
+    border-radius: 10px;
+    font-weight: bold;
+}
+
+.timer.warning {
+    background: #ffdddd;
+    color: #d00000;
+}
+
+.progress-container {
+    width: 100%;
+    height: 10px;
+    background: #eee;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 30px;
+}
+
+.progress {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    transition: width 0.3s;
+}
+
+.question {
+    font-size: 22px;
+    font-weight: bold;
+    line-height: 1.4;
+    margin-bottom: 25px;
+}
+
+.option {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: #f7f7f9;
+    border: 2px solid #e5e5e5;
+    margin: 12px 0;
+    padding: 17px;
+    border-radius: 14px;
+    font-weight: normal;
+}
+
+.option:hover {
+    background: #eeeeff;
+    border-color: #667eea;
+}
+
+.option.selected {
+    background: #e5e3ff;
+    border-color: #5a4fcf;
+}
+
+.navigation {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 30px;
+    gap: 10px;
+}
+
+.nav-btn {
+    background: #eee;
+}
+
+.next-btn {
+    background: #5a4fcf;
+    color: white;
+}
+
+.finish-btn {
+    background: #16a085;
+    color: white;
+}
+
+.result {
+    text-align: center;
+}
+
+.score {
+    font-size: 55px;
+    font-weight: bold;
+    color: #5a4fcf;
+    margin: 20px;
+}
+
+.result-box {
+    background: #f5f5ff;
+    border-radius: 15px;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.hidden {
+    display: none;
+}
+
+.restart {
+    background: #5a4fcf;
+    color: white;
+    width: 100%;
+}
+
+@media(max-width:600px) {
+
+    .container {
+        width: 96%;
+        padding: 10px 0;
+    }
+
+    .card {
+        padding: 20px;
+        border-radius: 18px;
+    }
+
+    .question {
+        font-size: 19px;
+    }
+
+    .option {
+        padding: 14px;
+        font-size: 15px;
+    }
+
+    .top-bar {
+        font-size: 14px;
+    }
+
+    .score {
+        font-size: 45px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<!-- INICIO -->
+<div class="card" id="startScreen">
+
+    <h1>🧠 Comunicación Asertiva</h1>
+
+    <p class="subtitle">
+        Evaluación de Comunicación Asertiva
+    </p>
+
+    <p>
+        <b>Instrucciones:</b>
+    </p>
+
+    <ul>
+        <li>50 preguntas de selección múltiple.</li>
+        <li>Solo una respuesta correcta por pregunta.</li>
+        <li>Tiempo máximo: 30 minutos.</li>
+        <li>La calificación será de 0.0 a 5.0.</li>
+    </ul>
+
+    <label><b>Nombre completo:</b></label>
+
+    <input
+        type="text"
+        id="studentName"
+        placeholder="Escribe tu nombre"
+    >
+
+    <button class="start-btn" onclick="startExam()">
+        🚀 Comenzar examen
+    </button>
+
+</div>
+
+
+<!-- EXAMEN -->
+<div class="card hidden" id="examScreen">
+
+    <div class="top-bar">
+
+        <div class="progress-text" id="progressText">
+            Pregunta 1 de 50
+        </div>
+
+        <div class="timer" id="timer">
+            ⏱️ 30:00
+        </div>
+
+    </div>
+
+    <div class="progress-container">
+        <div class="progress" id="progress"></div>
+    </div>
+
+    <div id="questionContainer"></div>
+
+    <div class="navigation">
+
+        <button
+            class="nav-btn"
+            id="previousBtn"
+            onclick="previousQuestion()">
+            ← Anterior
+        </button>
+
+        <button
+            class="next-btn"
+            id="nextBtn"
+            onclick="nextQuestion()">
+            Siguiente →
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- RESULTADO -->
+<div class="card hidden" id="resultScreen">
+
+    <div class="result">
+
+        <h1>🎉 Examen terminado</h1>
+
+        <p id="resultName"></p>
+
+        <div class="score" id="finalScore">
+            0.0
+        </div>
+
+        <div class="result-box">
+
+            <p>
+                <b>Aciertos:</b>
+                <span id="correctAnswers"></span> / 50
+            </p>
+
+            <p>
+                <b>Porcentaje:</b>
+                <span id="percentage"></span>%
+            </p>
+
+            <p>
+                <b>Nota final:</b>
+                <span id="finalGrade"></span> / 5.0
+            </p>
+
+        </div>
+
+        <button
+            class="restart"
+            onclick="location.reload()">
+            🔄 Volver a comenzar
+        </button>
+
+    </div>
+
+</div>
+
+</div>
+
+
+<script>
+
+/* ================================
+   BANCO DE PREGUNTAS
+================================ */
+
+const questions = [
+
+{
+q: "¿Qué es la comunicación asertiva?",
+options: [
+"Decir siempre lo que pensamos sin importar los demás.",
+"Expresar pensamientos, sentimientos y necesidades de manera clara y respetuosa.",
+"Evitar expresar nuestras opiniones para no generar conflictos.",
+"Convencer a los demás de aceptar nuestra opinión."
+],
+answer: 1
+},
+
+{
+q: "¿Cuál es una característica principal de una persona asertiva?",
+options: [
+"Impone sus decisiones.",
+"Evita cualquier tipo de conflicto.",
+"Expresa sus ideas respetando también las opiniones de los demás.",
+"Siempre acepta lo que otros proponen."
+],
+answer: 2
+},
+
+{
+q: "Una persona que comunica sus necesidades de manera clara, pero respetando los derechos de los demás, está utilizando una comunicación:",
+options: [
+"Pasiva.",
+"Agresiva.",
+"Manipuladora.",
+"Asertiva."
+],
+answer: 3
+},
+
+{
+q: "¿Cuál de las siguientes frases representa mejor una comunicación asertiva?",
+options: [
+"Usted nunca hace nada bien.",
+"No me importa lo que usted piense.",
+"Me gustaría que pudiéramos buscar otra solución.",
+"Haga lo que yo digo."
+],
+answer: 2
+},
+
+{
+q: "¿Por qué es importante escuchar activamente durante una conversación?",
+options: [
+"Para preparar una respuesta mientras la otra persona habla.",
+"Para comprender realmente lo que la otra persona quiere comunicar.",
+"Para demostrar que tenemos la razón.",
+"Para evitar tener que expresar nuestra opinión."
+],
+answer: 1
+},
+
+{
+q: "¿Cuál de estos elementos puede afectar significativamente la comunicación?",
+options: [
+"El tono de voz.",
+"El lenguaje corporal.",
+"Las palabras utilizadas.",
+"Todas las anteriores."
+],
+answer: 3
+},
+
+{
+q: "La empatía en la comunicación consiste principalmente en:",
+options: [
+"Estar siempre de acuerdo con la otra persona.",
+"Intentar comprender los sentimientos y perspectivas de otra persona.",
+"Evitar hablar sobre los sentimientos.",
+"Hacer que la otra persona piense igual que nosotros."
+],
+answer: 1
+},
+
+{
+q: "¿Qué significa establecer un límite de manera asertiva?",
+options: [
+"Amenazar a la otra persona.",
+"Ignorar completamente sus necesidades.",
+"Expresar claramente aquello que estamos dispuestos o no dispuestos a aceptar.",
+"Evitar decir lo que pensamos."
+],
+answer: 2
+},
+
+{
+q: "Una buena retroalimentación debería ser principalmente:",
+options: [
+"Personal y ofensiva.",
+"Clara, respetuosa y enfocada en conductas o situaciones concretas.",
+"General y negativa.",
+"Utilizada para demostrar superioridad."
+],
+answer: 1
+},
+
+{
+q: "¿Cuál es uno de los principales objetivos de la comunicación asertiva?",
+options: [
+"Ganar todas las discusiones.",
+"Evitar expresar emociones.",
+"Defender nuestros derechos respetando los de los demás.",
+"Conseguir que los demás hagan lo que queremos."
+],
+answer: 2
+},
+
+{
+q: "Una persona pasiva normalmente:",
+options: [
+"Expresa claramente sus necesidades.",
+"Impone sus opiniones.",
+"Tiende a no expresar lo que piensa o necesita.",
+"Busca negociar constantemente."
+],
+answer: 2
+},
+
+{
+q: "Una persona agresiva durante una discusión suele:",
+options: [
+"Escuchar cuidadosamente al otro.",
+"Imponer sus ideas y utilizar expresiones hostiles o descalificadoras.",
+"Buscar una solución beneficiosa para ambas partes.",
+"Reconocer siempre sus errores."
+],
+answer: 1
+},
+
+{
+q: "¿Cuál de las siguientes frases representa una comunicación pasiva?",
+options: [
+"No estoy de acuerdo y quiero explicar por qué.",
+"Prefiero que no me hables de esa manera.",
+"Está bien, haz lo que quieras, aunque realmente no esté de acuerdo.",
+"Necesitamos encontrar una solución."
+],
+answer: 2
+},
+
+{
+q: "¿Cuál representa una comunicación agresiva?",
+options: [
+"Entiendo tu punto, pero yo lo veo diferente.",
+"Me gustaría que habláramos sobre esto.",
+"Si no haces lo que digo, tendrás problemas.",
+"No estoy de acuerdo con esa propuesta."
+],
+answer: 2
+},
+
+{
+q: "¿Cuál representa una comunicación asertiva?",
+options: [
+"No importa, yo hago todo.",
+"Usted siempre arruina todo.",
+"Entiendo tu opinión, pero considero que deberíamos analizar otra alternativa.",
+"Hazlo como yo digo."
+],
+answer: 2
+},
+
+{
+q: "Una persona que dice 'sí' constantemente para evitar conflictos, aunque realmente quiera decir 'no', está mostrando principalmente un comportamiento:",
+options: [
+"Asertivo.",
+"Pasivo.",
+"Agresivo.",
+"Cooperativo."
+],
+answer: 1
+},
+
+{
+q: "¿Qué diferencia principalmente a una comunicación asertiva de una agresiva?",
+options: [
+"La asertiva nunca expresa desacuerdos.",
+"La asertiva busca expresar el desacuerdo sin atacar ni irrespetar a la otra persona.",
+"La agresiva siempre tiene argumentos incorrectos.",
+"No existe diferencia."
+],
+answer: 1
+},
+
+{
+q: "Si alguien no está de acuerdo contigo, una respuesta asertiva sería:",
+options: [
+"No sabes de lo que estás hablando.",
+"Cállate y escucha.",
+"Respeto tu opinión, aunque yo pienso diferente.",
+"Entonces no vuelvo a hablar contigo."
+],
+answer: 2
+},
+
+{
+q: "Cuando una persona utiliza sarcasmo, indirectas y resentimiento en lugar de expresar directamente lo que piensa, puede estar utilizando una comunicación:",
+options: [
+"Pasivo-agresiva.",
+"Asertiva.",
+"Empática.",
+"Activa."
+],
+answer: 0
+},
+
+{
+q: "¿Cuál es una buena forma de rechazar una solicitud?",
+options: [
+"Ignorar a la persona.",
+"Decir 'no' de manera clara y, si es necesario, explicar brevemente la razón.",
+"Inventar una excusa complicada.",
+"Aceptar aunque no queramos."
+],
+answer: 1
+},
+
+{
+q: "Un compañero de clase te interrumpe constantemente mientras hablas. ¿Cuál sería la respuesta más asertiva?",
+options: [
+"¡Cállate de una vez!",
+"No volver a hablar.",
+"Me gustaría terminar mi idea y después escucho tu opinión.",
+"Interrumpirlo también."
+],
+answer: 2
+},
+
+{
+q: "Un compañero de trabajo toma crédito por una idea que tú propusiste. ¿Qué sería más asertivo?",
+options: [
+"Insultarlo frente a todos.",
+"No decir nada aunque te moleste.",
+"Hablar con él y aclarar respetuosamente que la idea también fue propuesta por ti.",
+"Hacer lo mismo con su próximo trabajo."
+],
+answer: 2
+},
+
+{
+q: "Un amigo cancela continuamente los planes que hacen. ¿Qué respuesta es más asertiva?",
+options: [
+"Siempre haces lo mismo, eres una mala persona.",
+"No volver a hablarle.",
+"Me molesta que canceles constantemente porque organizo mi tiempo para estos planes. ¿Podemos buscar una solución?",
+"Cancelar todos los planes sin explicarle nada."
+],
+answer: 2
+},
+
+{
+q: "Tu profesor te hace una crítica sobre un trabajo que realizaste. ¿Cuál es una respuesta asertiva?",
+options: [
+"Usted no sabe enseñar.",
+"Ignorar completamente la crítica.",
+"Gracias por la observación. ¿Podría explicarme qué podría mejorar?",
+"Discutir inmediatamente."
+],
+answer: 2
+},
+
+{
+q: "En un trabajo grupal, dos compañeros tienen opiniones diferentes sobre cómo realizar el proyecto. ¿Qué deberían hacer?",
+options: [
+"Elegir la opinión del que hable más fuerte.",
+"Escuchar ambas propuestas y analizar cuál puede funcionar mejor.",
+"Ignorar una de las opiniones.",
+"Dividir el grupo."
+],
+answer: 1
+},
+
+{
+q: "Un compañero está haciendo demasiado ruido mientras estudias. ¿Qué podrías decir?",
+options: [
+"¿Puedes bajar un poco el volumen? Necesito concentrarme.",
+"¡Eres insoportable!",
+"Si sigues así te vas a arrepentir.",
+"No decir nada y molestarte."
+],
+answer: 0
+},
+
+{
+q: "Alguien te pide prestado algo que necesitas utilizar en ese momento. ¿Cuál sería una respuesta asertiva?",
+options: [
+"No, porque no quiero.",
+"Claro, aunque realmente lo necesitas.",
+"Ahora lo necesito, pero puedo prestártelo cuando termine de usarlo.",
+"Nunca te voy a prestar nada."
+],
+answer: 2
+},
+
+{
+q: "Un cliente o compañero está molesto y comienza a levantar la voz. ¿Qué sería recomendable hacer primero?",
+options: [
+"Levantar la voz aún más.",
+"Mantener la calma y escuchar cuál es el problema.",
+"Ignorarlo.",
+"Insultarlo."
+],
+answer: 1
+},
+
+{
+q: "Alguien hace un comentario ofensivo sobre ti. ¿Cuál sería una respuesta asertiva?",
+options: [
+"Insultarlo inmediatamente.",
+"Golpearlo.",
+"No me parece apropiado que me hables de esa manera. Podemos hablar si lo hacemos con respeto.",
+"Hacer como si nada hubiera pasado siempre."
+],
+answer: 2
+},
+
+{
+q: "Durante una conversación, una persona te interrumpe antes de que termines. ¿Qué puedes hacer?",
+options: [
+"Interrumpirla inmediatamente.",
+"Pedirle tranquilamente que te permita terminar.",
+"Abandonar la conversación.",
+"Gritarle."
+],
+answer: 1
+},
+
+{
+q: "Ante un conflicto, una estrategia adecuada es:",
+options: [
+"Buscar culpables inmediatamente.",
+"Escuchar a las partes involucradas y buscar soluciones.",
+"Evitar hablar del problema.",
+"Amenazar a la otra persona."
+],
+answer: 1
+},
+
+{
+q: "Durante una discusión es más apropiado criticar:",
+options: [
+"La personalidad de la persona.",
+"Su familia.",
+"Una conducta o situación específica.",
+"Su inteligencia."
+],
+answer: 2
+},
+
+{
+q: "¿Qué significa parafrasear durante una conversación?",
+options: [
+"Repetir exactamente todas las palabras de la otra persona.",
+"Explicar con nuestras propias palabras lo que entendimos.",
+"Cambiar el tema.",
+"Contradecir automáticamente."
+],
+answer: 1
+},
+
+{
+q: "Una persona te dice que está muy molesta por una situación. Una respuesta empática sería:",
+options: [
+"Eso no es para tanto.",
+"Deja de exagerar.",
+"Entiendo que esa situación te haya molestado.",
+"Es culpa tuya."
+],
+answer: 2
+},
+
+{
+q: "En una negociación, lo más recomendable es:",
+options: [
+"Buscar que solamente una persona gane.",
+"Buscar alternativas que tengan en cuenta las necesidades de ambas partes.",
+"Evitar escuchar al otro.",
+"Amenazar para conseguir lo que queremos."
+],
+answer: 1
+},
+
+{
+q: "Cuando dos personas tienen posiciones diferentes, encontrar puntos en común puede ayudar a:",
+options: [
+"Aumentar el conflicto.",
+"Evitar cualquier solución.",
+"Facilitar un acuerdo.",
+"Demostrar quién tiene más autoridad."
+],
+answer: 2
+},
+
+{
+q: "Si una persona continúa faltándote al respeto después de que le pediste que parara, una respuesta adecuada sería:",
+options: [
+"Responder con insultos.",
+"Establecer claramente el límite y, si es necesario, terminar la conversación.",
+"Aceptarlo siempre.",
+"Amenazarla."
+],
+answer: 1
+},
+
+{
+q: "Si alguien intenta provocarte durante una discusión, lo más recomendable es:",
+options: [
+"Responder con la misma agresividad.",
+"Mantener la calma y centrarse en el problema.",
+"Insultarlo.",
+"Buscar una pelea."
+],
+answer: 1
+},
+
+{
+q: "Si cometiste un error que afectó a otra persona, una respuesta asertiva sería:",
+options: [
+"Culpar a otra persona.",
+"Negar que ocurrió.",
+"Reconocer el error, disculparte y buscar una forma de solucionarlo.",
+"Ignorar el problema."
+],
+answer: 2
+},
+
+{
+q: "Una conversación difícil suele ser más productiva cuando:",
+options: [
+"Se realiza durante un momento de mucha ira.",
+"Se utilizan insultos.",
+"Se habla con claridad, respeto y disposición para escuchar.",
+"Se intenta imponer una solución."
+],
+answer: 2
+},
+
+{
+q: "¿Cuál de las siguientes frases comunica mejor un sentimiento sin culpar directamente a otra persona?",
+options: [
+"Tú siempre me haces enojar.",
+"Eres una persona irrespetuosa.",
+"Me siento incómodo cuando ocurre esta situación.",
+"Todo es culpa tuya."
+],
+answer: 2
+},
+
+{
+q: "Tu compañero te pide que hagas su parte de un trabajo porque dice que no tiene tiempo. Tú tampoco tienes tiempo. ¿Qué respuesta es más asertiva?",
+options: [
+"Sí, yo hago todo.",
+"No puedo hacer tu parte porque también tengo responsabilidades que cumplir.",
+"Hazlo tú y déjame tranquilo.",
+"No responder."
+],
+answer: 1
+},
+
+{
+q: "Un grupo quiere tomar una decisión, pero tú tienes una propuesta diferente. ¿Qué deberías hacer?",
+options: [
+"Imponer tu propuesta.",
+"No decir nada.",
+"Presentar tu propuesta y explicar respetuosamente por qué consideras que puede funcionar.",
+"Criticar las propuestas de los demás."
+],
+answer: 2
+},
+
+{
+q: "Recibes un mensaje de WhatsApp que interpretas como ofensivo. ¿Cuál es la mejor reacción inicial?",
+options: [
+"Responder inmediatamente con otro mensaje ofensivo.",
+"Bloquear a la persona.",
+"Preguntar qué quiso decir antes de asumir una intención.",
+"Compartir la conversación con otras personas."
+],
+answer: 2
+},
+
+{
+q: "Una persona publica una opinión con la que no estás de acuerdo en redes sociales. ¿Cuál es una respuesta asertiva?",
+options: [
+"Insultarla.",
+"Ridiculizarla públicamente.",
+"Expresar tu opinión respetuosamente o decidir no entrar en una discusión innecesaria.",
+"Buscar información personal sobre ella."
+],
+answer: 2
+},
+
+{
+q: "Tus amigos te presionan para hacer algo que no quieres. ¿Qué respuesta demuestra asertividad?",
+options: [
+"Aceptar para evitar que se enojen.",
+"No quiero hacerlo y prefiero que respeten mi decisión.",
+"Insultarlos.",
+"Inventar una excusa aunque no sea necesario."
+],
+answer: 1
+},
+
+{
+q: "Durante una reunión, todos están de acuerdo con una propuesta, pero tú detectas un posible problema. ¿Qué deberías hacer?",
+options: [
+"Guardar silencio siempre.",
+"Decir 'eso es una estupidez'.",
+"Expresar la preocupación y explicar el posible problema.",
+"Abandonar la reunión."
+],
+answer: 2
+},
+
+{
+q: "Un compañero te pide copiar tu trabajo para presentarlo como propio. ¿Qué respuesta es más asertiva?",
+options: [
+"Claro, copia todo.",
+"No puedo darte mi trabajo para que lo presentes como tuyo, pero puedo ayudarte a entender el tema.",
+"Haz lo que quieras.",
+"Insultarlo."
+],
+answer: 1
+},
+
+{
+q: "Un buen líder que utiliza comunicación asertiva debería:",
+options: [
+"Dar órdenes y no aceptar opiniones.",
+"Escuchar al equipo, expresar claramente las expectativas y tratar a las personas con respeto.",
+"Evitar cualquier conflicto.",
+"Tomar todas las decisiones solo."
+],
+answer: 1
+},
+
+{
+q: "En un proyecto grupal, un integrante no cumple sus responsabilidades. ¿Cuál sería la forma más asertiva de abordar la situación?",
+options: [
+"Excluirlo inmediatamente del grupo.",
+"Insultarlo delante de todos.",
+"Hablar con él sobre el incumplimiento, explicar cómo afecta al grupo y buscar una solución concreta.",
+"Hacer su trabajo sin decirle nada."
+],
+answer: 2
+}
+
+];
+
+
+/* ================================
+   VARIABLES
+================================ */
+
+let currentQuestion = 0;
+let userAnswers = [];
+let studentName = "";
+let timeLeft = 30 * 60;
+let timerInterval;
+
+
+/* ================================
+   INICIAR EXAMEN
+================================ */
+
+function startExam() {
+
+    studentName =
+        document.getElementById("studentName").value.trim();
+
+    if (studentName === "") {
+        alert("Por favor escribe tu nombre antes de comenzar.");
+        return;
+    }
+
+    document.getElementById("startScreen")
+        .classList.add("hidden");
+
+    document.getElementById("examScreen")
+        .classList.remove("hidden");
+
+    userAnswers =
+        new Array(questions.length).fill(null);
+
+    showQuestion();
+
+    timerInterval =
+        setInterval(updateTimer, 1000);
+}
+
+
+/* ================================
+   MOSTRAR PREGUNTA
+================================ */
+
+function showQuestion() {
+
+    const question = questions[currentQuestion];
+
+    document.getElementById("progressText")
+        .textContent =
+        `Pregunta ${currentQuestion + 1} de ${questions.length}`;
+
+    const percentage =
+        ((currentQuestion + 1) / questions.length) * 100;
+
+    document.getElementById("progress")
+        .style.width = percentage + "%";
+
+    let html = `
+        <div class="question">
+            ${question.q}
+        </div>
+    `;
+
+    question.options.forEach((option, index) => {
+
+        const selected =
+            userAnswers[currentQuestion] === index
+            ? "selected"
+            : "";
+
+        html += `
+            <button
+                class="option ${selected}"
+                onclick="selectAnswer(${index})">
+                <b>${String.fromCharCode(65 + index)}.</b>
+                ${option}
+            </button>
+        `;
+
+    });
+
+    document.getElementById("questionContainer")
+        .innerHTML = html;
+
+    document.getElementById("previousBtn")
+        .style.visibility =
+        currentQuestion === 0 ? "hidden" : "visible";
+
+    const nextButton =
+        document.getElementById("nextBtn");
+
+    if (currentQuestion === questions.length - 1) {
+
+        nextButton.textContent = "✓ Finalizar examen";
+        nextButton.className = "finish-btn";
+
+    } else {
+
+        nextButton.textContent = "Siguiente →";
+        nextButton.className = "next-btn";
+
+    }
+
+}
+
+
+/* ================================
+   SELECCIONAR RESPUESTA
+================================ */
+
+function selectAnswer(index) {
+
+    userAnswers[currentQuestion] = index;
+
+    showQuestion();
+
+}
+
+
+/* ================================
+   SIGUIENTE
+================================ */
+
+function nextQuestion() {
+
+    if (userAnswers[currentQuestion] === null) {
+
+        alert("Selecciona una respuesta antes de continuar.");
+        return;
+
+    }
+
+    if (currentQuestion === questions.length - 1) {
+
+        finishExam();
+        return;
+
+    }
+
+    currentQuestion++;
+
+    showQuestion();
+
+}
+
+
+/* ================================
+   ANTERIOR
+================================ */
+
+function previousQuestion() {
+
+    if (currentQuestion > 0) {
+
+        currentQuestion--;
+
+        showQuestion();
+
+    }
+
+}
+
+
+/* ================================
+   TEMPORIZADOR
+================================ */
+
+function updateTimer() {
+
+    timeLeft--;
+
+    const minutes =
+        Math.floor(timeLeft / 60);
+
+    const seconds =
+        timeLeft % 60;
+
+    document.getElementById("timer")
+        .textContent =
+        `⏱️ ${minutes}:${seconds.toString().padStart(2, "0")}`;
+
+    if (timeLeft <= 300) {
+
+        document.getElementById("timer")
+            .classList.add("warning");
+
+    }
+
+    if (timeLeft <= 0) {
+
+        clearInterval(timerInterval);
+
+        alert("⏰ Se terminó el tiempo.");
+
+        finishExam();
+
+    }
+
+}
+
+
+/* ================================
+   FINALIZAR
+================================ */
+
+function finishExam() {
+
+    clearInterval(timerInterval);
+
+    let correct = 0;
+
+    questions.forEach((question, index) => {
+
+        if (userAnswers[index] === question.answer) {
+
+            correct++;
+
+        }
+
+    });
+
+    const percentage =
+        (correct / questions.length) * 100;
+
+    const grade =
+        (correct / questions.length) * 5;
+
+    document.getElementById("examScreen")
+        .classList.add("hidden");
+
+    document.getElementById("resultScreen")
+        .classList.remove("hidden");
+
+    document.getElementById("resultName")
+        .textContent =
+        `Estudiante: ${studentName}`;
+
+    document.getElementById("correctAnswers")
+        .textContent = correct;
+
+    document.getElementById("percentage")
+        .textContent = percentage.toFixed(1);
+
+    document.getElementById("finalGrade")
+        .textContent = grade.toFixed(2);
+
+    document.getElementById("finalScore")
+        .textContent = grade.toFixed(2);
+
+}
+
+</script>
+
+</body>
+</html>
