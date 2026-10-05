@@ -1,223 +1,396 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
 
     <title>Quiz - Inicio</title>
 
     <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+
     <style>
+
         * {
             box-sizing: border-box;
         }
 
         body {
+
             margin: 0;
+
             min-height: 100vh;
-            font-family: Arial, Helvetica, sans-serif;
-            background: linear-gradient(135deg, #46178f, #25004f);
+
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #46178f,
+                    #25004f
+                );
+
             display: flex;
+
             justify-content: center;
+
             align-items: center;
+
             color: white;
         }
 
+
         .contenedor {
+
             width: 100%;
+
             max-width: 650px;
+
             padding: 20px;
         }
 
+
         .tarjeta {
+
             background: white;
+
             color: #222;
+
             border-radius: 25px;
+
             padding: 40px 30px;
+
             text-align: center;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+
+            box-shadow:
+                0 15px 40px
+                rgba(0,0,0,0.3);
         }
 
+
         .logo {
+
             font-size: 70px;
+
             margin-bottom: 5px;
         }
 
+
         h1 {
+
             margin: 0;
+
             font-size: 42px;
+
             color: #46178f;
         }
 
+
         .subtitulo {
+
             color: #666;
+
             margin-top: 10px;
+
             margin-bottom: 35px;
+
             font-size: 18px;
         }
 
+
         .botones {
+
             display: flex;
+
             gap: 20px;
+
             justify-content: center;
         }
 
+
         button {
+
             border: none;
+
             cursor: pointer;
+
             font-size: 18px;
+
             font-weight: bold;
+
             border-radius: 12px;
+
             padding: 18px 25px;
+
             transition: 0.2s;
         }
 
+
         button:hover {
-            transform: translateY(-2px);
-            filter: brightness(1.05);
+
+            transform:
+                translateY(-2px);
+
+            filter:
+                brightness(1.05);
         }
+
 
         .profesor {
+
             background: #46178f;
+
             color: white;
+
             flex: 1;
         }
+
 
         .estudiante {
+
             background: #26890c;
+
             color: white;
+
             flex: 1;
         }
 
+
         .pantalla {
+
             display: none;
         }
 
+
         .pantalla.activa {
+
             display: block;
         }
 
+
         .volver {
+
             background: #ddd;
+
             color: #333;
+
             margin-top: 20px;
+
             width: 100%;
         }
 
+
         input {
+
             width: 100%;
+
             padding: 17px;
+
             margin: 10px 0;
-            border: 2px solid #ddd;
+
+            border:
+                2px solid #ddd;
+
             border-radius: 10px;
+
             font-size: 18px;
+
             text-align: center;
+
             outline: none;
         }
 
+
         input:focus {
-            border-color: #46178f;
+
+            border-color:
+                #46178f;
         }
 
+
         .boton-principal {
+
             width: 100%;
+
             margin-top: 15px;
+
             background: #46178f;
+
             color: white;
         }
 
+
         .codigo {
+
             font-size: 55px;
+
             font-weight: bold;
+
             letter-spacing: 8px;
+
             color: #46178f;
+
             margin: 25px 0;
         }
 
+
         .mensaje {
+
             margin-top: 15px;
+
             padding: 12px;
+
             border-radius: 10px;
+
             display: none;
+
             font-weight: bold;
         }
 
+
         .exito {
+
             display: block;
+
             background: #d9ffd3;
+
             color: #216314;
         }
 
+
         .error {
+
             display: block;
+
             background: #ffd6d6;
+
             color: #a00000;
         }
 
+
         .espera {
+
             display: block;
+
             background: #eee;
+
             color: #555;
         }
 
+
         .jugadores {
+
             margin-top: 20px;
+
             padding: 15px;
+
             background: #f5f5f5;
+
             border-radius: 12px;
         }
 
+
         .jugadores h3 {
+
             margin-top: 0;
         }
+
+
+        .opcion {
+
+            width: 100%;
+
+            margin-top: 12px;
+
+            color: white;
+
+            background: #46178f;
+        }
+
+
+        .opcion:hover {
+
+            filter:
+                brightness(1.1);
+        }
+
 
         @media (max-width: 600px) {
 
             .tarjeta {
-                padding: 30px 20px;
+
+                padding:
+                    30px 20px;
             }
 
+
             h1 {
+
                 font-size: 34px;
             }
 
+
             .logo {
+
                 font-size: 55px;
             }
 
+
             .botones {
+
                 flex-direction: column;
             }
 
+
             .codigo {
+
                 font-size: 40px;
+
                 letter-spacing: 5px;
             }
+
         }
+
     </style>
+
 </head>
+
 
 <body>
 
+
 <div class="contenedor">
 
-    <!-- ========================= -->
-    <!-- INICIO -->
-    <!-- ========================= -->
 
-    <div id="inicio" class="pantalla activa">
+    <!-- ================================= -->
+    <!-- INICIO -->
+    <!-- ================================= -->
+
+    <div id="inicio"
+         class="pantalla activa">
 
         <div class="tarjeta">
 
-            <div class="logo">🎮</div>
+            <div class="logo">
+                🎮
+            </div>
 
-            <h1>Mi Quiz</h1>
+            <h1>
+                Mi Quiz
+            </h1>
 
             <p class="subtitulo">
                 Juego de preguntas en tiempo real
             </p>
+
 
             <div class="botones">
 
@@ -228,6 +401,7 @@
                     👨‍🏫 Profesor
 
                 </button>
+
 
                 <button
                     class="estudiante"
@@ -244,21 +418,30 @@
     </div>
 
 
-    <!-- ========================= -->
-    <!-- PROFESOR -->
-    <!-- ========================= -->
 
-    <div id="profesor" class="pantalla">
+    <!-- ================================= -->
+    <!-- PROFESOR -->
+    <!-- ================================= -->
+
+    <div id="profesor"
+         class="pantalla">
 
         <div class="tarjeta">
 
-            <div class="logo">👨‍🏫</div>
+            <div class="logo">
+                👨‍🏫
+            </div>
 
-            <h1>Profesor</h1>
+
+            <h1>
+                Profesor
+            </h1>
+
 
             <p class="subtitulo">
                 Crea una nueva partida
             </p>
+
 
             <button
                 class="boton-principal"
@@ -268,32 +451,61 @@
 
             </button>
 
+
             <div id="mensajeProfesor"
                  class="mensaje">
             </div>
 
+
+
             <div id="partidaProfesor"
                  style="display:none;">
 
+
                 <p>
-                    Comparte este código con tus estudiantes:
+                    Comparte este código
+                    con tus estudiantes:
                 </p>
+
 
                 <div id="codigoJuego"
                      class="codigo">
                 </div>
 
+
+
                 <div class="jugadores">
 
-                    <h3>👥 Jugadores conectados</h3>
+                    <h3>
+                        👥 Jugadores conectados
+                    </h3>
+
 
                     <div id="listaJugadores">
+
                         Esperando jugadores...
+
                     </div>
 
                 </div>
 
+
+
+                <!-- BOTÓN NUEVO -->
+
+                <button
+                    id="botonIniciar"
+                    class="boton-principal"
+                    onclick="iniciarPartida()">
+
+                    ▶️ Iniciar Quiz
+
+                </button>
+
+
             </div>
+
+
 
             <button
                 class="volver"
@@ -308,21 +520,31 @@
     </div>
 
 
-    <!-- ========================= -->
-    <!-- ESTUDIANTE -->
-    <!-- ========================= -->
 
-    <div id="estudiante" class="pantalla">
+    <!-- ================================= -->
+    <!-- ESTUDIANTE -->
+    <!-- ================================= -->
+
+    <div id="estudiante"
+         class="pantalla">
 
         <div class="tarjeta">
 
-            <div class="logo">👨‍🎓</div>
+            <div class="logo">
+                👨‍🎓
+            </div>
 
-            <h1>Entrar al Quiz</h1>
+
+            <h1>
+                Entrar al Quiz
+            </h1>
+
 
             <p class="subtitulo">
                 Introduce el código y tu nombre
             </p>
+
+
 
             <input
                 id="codigoEntrada"
@@ -331,11 +553,15 @@
                 inputmode="numeric"
                 placeholder="Código del juego">
 
+
+
             <input
                 id="nombreEntrada"
                 type="text"
                 maxlength="30"
                 placeholder="Tu nombre">
+
+
 
             <button
                 class="boton-principal"
@@ -345,9 +571,13 @@
 
             </button>
 
+
+
             <div id="mensajeEstudiante"
                  class="mensaje">
             </div>
+
+
 
             <button
                 class="volver"
@@ -362,561 +592,1324 @@
     </div>
 
 
-    <!-- ========================= -->
-    <!-- ESPERA DEL ESTUDIANTE -->
-    <!-- ========================= -->
 
-    <div id="espera" class="pantalla">
+    <!-- ================================= -->
+    <!-- ESPERA DEL ESTUDIANTE -->
+    <!-- ================================= -->
+
+    <div id="espera"
+         class="pantalla">
 
         <div class="tarjeta">
 
-            <div class="logo">⏳</div>
+            <div class="logo">
+                ⏳
+            </div>
 
-            <h1>¡Ya estás dentro!</h1>
+
+            <h1>
+                ¡Ya estás dentro!
+            </h1>
+
 
             <p class="subtitulo">
-                Espera a que el profesor comience el juego.
+
+                Espera a que el profesor
+                comience el juego.
+
             </p>
 
-            <h2 id="nombreJugador"></h2>
+
+            <h2 id="nombreJugador">
+            </h2>
+
 
             <div class="mensaje espera">
+
                 🟢 Conectado
+
             </div>
 
         </div>
 
     </div>
 
+
+
+    <!-- ================================= -->
+    <!-- QUIZ DEL ESTUDIANTE -->
+    <!-- ================================= -->
+
+    <div id="quizEstudiante"
+         class="pantalla">
+
+        <div class="tarjeta">
+
+
+            <div class="logo">
+                ❓
+            </div>
+
+
+            <h1 id="numeroPregunta">
+
+                Pregunta 1
+
+            </h1>
+
+
+            <p id="textoPregunta"
+               class="subtitulo">
+
+                Cargando pregunta...
+
+            </p>
+
+
+
+            <div id="opciones">
+
+
+                <button
+                    class="opcion">
+
+                    A
+
+                </button>
+
+
+                <button
+                    class="opcion">
+
+                    B
+
+                </button>
+
+
+                <button
+                    class="opcion">
+
+                    C
+
+                </button>
+
+
+                <button
+                    class="opcion">
+
+                    D
+
+                </button>
+
+
+            </div>
+
+        </div>
+
+    </div>
+
+
 </div>
+
 
 
 <script>
 
-    // ==========================================
-    // CONFIGURACIÓN SUPABASE
-    // ==========================================
 
-    const SUPABASE_URL =
-        "https://ohmtgkmbrxwtalyamdcg.supabase.co";
+// ==========================================
+// CONFIGURACIÓN SUPABASE
+// ==========================================
 
-    const SUPABASE_KEY =
-        "sb_publishable_ec57o1PkClVIioHISyei8A_v_Qj619r";
 
-    const supabaseClient =
-        window.supabase.createClient(
-            SUPABASE_URL,
-            SUPABASE_KEY
-        );
+const SUPABASE_URL =
+    "https://ohmtgkmbrxwtalyamdcg.supabase.co";
 
 
-    // ==========================================
-    // VARIABLES
-    // ==========================================
+const SUPABASE_KEY =
+    "sb_publishable_ec57o1PkClVIioHISyei8A_v_Qj619r";
 
-    let partidaActual = null;
 
-    let jugadorActual = null;
+const supabaseClient =
+    window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_KEY
+    );
 
-    let canalJugadores = null;
 
 
-    // ==========================================
-    // CAMBIAR PANTALLA
-    // ==========================================
+// ==========================================
+// VARIABLES
+// ==========================================
 
-    function mostrarPantalla(id) {
 
-        document
-            .querySelectorAll(".pantalla")
-            .forEach(pantalla => {
+let partidaActual = null;
 
-                pantalla.classList.remove("activa");
+let jugadorActual = null;
 
-            });
+let canalJugadores = null;
 
-        document
-            .getElementById(id)
-            .classList.add("activa");
-    }
+let canalPartida = null;
 
 
-    function mostrarProfesor() {
 
-        mostrarPantalla("profesor");
+// ==========================================
+// CAMBIAR PANTALLA
+// ==========================================
 
-    }
 
+function mostrarPantalla(id) {
 
-    function mostrarEstudiante() {
 
-        mostrarPantalla("estudiante");
+    document
+        .querySelectorAll(".pantalla")
+        .forEach(pantalla => {
 
-    }
-
-
-    function volverInicio() {
-
-        mostrarPantalla("inicio");
-
-    }
-
-
-    // ==========================================
-    // GENERAR CÓDIGO
-    // ==========================================
-
-    function generarCodigo() {
-
-        return Math.floor(
-            100000 + Math.random() * 900000
-        ).toString();
-
-    }
-
-
-    // ==========================================
-    // CREAR PARTIDA
-    // ==========================================
-
-    async function crearPartida() {
-
-        const mensaje =
-            document.getElementById("mensajeProfesor");
-
-        mensaje.className = "mensaje";
-
-        mensaje.innerText =
-            "Creando partida...";
-
-        mensaje.style.display = "block";
-
-
-        // Generar código
-
-        const codigo = generarCodigo();
-
-
-        // Guardar partida en Supabase
-
-        const { data, error } =
-            await supabaseClient
-                .from("partidas")
-                .insert({
-
-                    codigo: codigo,
-
-                    estado: "esperando",
-
-                    pregunta_actual: 0
-
-                })
-                .select()
-                .single();
-
-
-        if (error) {
-
-            console.error(error);
-
-            mensaje.className =
-                "mensaje error";
-
-            mensaje.innerText =
-                "❌ Error: " + error.message;
-
-            return;
-        }
-
-
-        // Guardamos la partida
-
-        partidaActual = data;
-
-
-        // Mostrar código
-
-        document.getElementById(
-            "codigoJuego"
-        ).innerText = data.codigo;
-
-
-        document.getElementById(
-            "partidaProfesor"
-        ).style.display = "block";
-
-
-        mensaje.className =
-            "mensaje exito";
-
-        mensaje.innerText =
-            "✅ Partida creada";
-
-
-        // Escuchar jugadores
-
-        escucharJugadores(data.id);
-
-
-        // Cargar jugadores existentes
-
-        cargarJugadores(data.id);
-
-    }
-
-
-    // ==========================================
-    // CARGAR JUGADORES
-    // ==========================================
-
-    async function cargarJugadores(partidaId) {
-
-        const { data, error } =
-            await supabaseClient
-                .from("jugadores")
-                .select("*")
-                .eq("partida_id", partidaId)
-                .order("creado_en", {
-                    ascending: true
-                });
-
-
-        if (error) {
-
-            console.error(error);
-
-            return;
-        }
-
-
-        mostrarJugadores(data);
-
-    }
-
-
-    // ==========================================
-    // MOSTRAR JUGADORES
-    // ==========================================
-
-    function mostrarJugadores(jugadores) {
-
-        const lista =
-            document.getElementById(
-                "listaJugadores"
+            pantalla.classList.remove(
+                "activa"
             );
-
-
-        if (!jugadores ||
-            jugadores.length === 0) {
-
-            lista.innerHTML =
-                "Esperando jugadores...";
-
-            return;
-        }
-
-
-        lista.innerHTML = "";
-
-
-        jugadores.forEach(jugador => {
-
-            const div =
-                document.createElement("div");
-
-            div.style.padding = "8px";
-
-            div.style.fontSize = "18px";
-
-            div.innerText =
-                "👤 " + jugador.nombre;
-
-            lista.appendChild(div);
 
         });
 
-    }
+
+    document
+        .getElementById(id)
+        .classList.add("activa");
+
+}
 
 
-    // ==========================================
-    // REALTIME DE JUGADORES
-    // ==========================================
 
-    function escucharJugadores(partidaId) {
-
-        if (canalJugadores) {
-
-            supabaseClient
-                .removeChannel(canalJugadores);
-
-        }
+// ==========================================
+// BOTONES INICIO
+// ==========================================
 
 
-        canalJugadores =
-            supabaseClient
-                .channel(
-                    "jugadores-" + partidaId
-                )
-                .on(
-                    "postgres_changes",
-                    {
-                        event: "*",
-                        schema: "public",
-                        table: "jugadores",
-                        filter:
-                            "partida_id=eq." +
-                            partidaId
-                    },
-                    function () {
+function mostrarProfesor() {
 
-                        cargarJugadores(partidaId);
+    mostrarPantalla("profesor");
 
-                    }
-                )
-                .subscribe();
-
-    }
+}
 
 
-    // ==========================================
-    // UNIRSE COMO ESTUDIANTE
-    // ==========================================
+function mostrarEstudiante() {
 
-    async function unirsePartida() {
+    mostrarPantalla("estudiante");
 
-        const codigo =
-            document
-                .getElementById("codigoEntrada")
-                .value
-                .trim();
+}
 
 
-        const nombre =
-            document
-                .getElementById("nombreEntrada")
-                .value
-                .trim();
+function volverInicio() {
+
+    mostrarPantalla("inicio");
+
+}
 
 
-        const mensaje =
-            document
-                .getElementById(
-                    "mensajeEstudiante"
-                );
+
+// ==========================================
+// GENERAR CÓDIGO
+// ==========================================
 
 
-        // Validaciones
+function generarCodigo() {
 
-        if (codigo.length !== 6) {
+    return Math.floor(
+        100000 +
+        Math.random() * 900000
+    ).toString();
 
-            mensaje.className =
-                "mensaje error";
-
-            mensaje.innerText =
-                "❌ El código debe tener 6 números.";
-
-            return;
-        }
+}
 
 
-        if (nombre.length < 1) {
 
-            mensaje.className =
-                "mensaje error";
+// ==========================================
+// CREAR PARTIDA
+// ==========================================
 
-            mensaje.innerText =
-                "❌ Escribe tu nombre.";
 
-            return;
-        }
+async function crearPartida() {
+
+
+    const mensaje =
+        document.getElementById(
+            "mensajeProfesor"
+        );
+
+
+    mensaje.className =
+        "mensaje";
+
+
+    mensaje.innerText =
+        "Creando partida...";
+
+
+    mensaje.style.display =
+        "block";
+
+
+
+    // Generar código
+
+    const codigo =
+        generarCodigo();
+
+
+
+    // Guardar partida
+
+    const { data, error } =
+        await supabaseClient
+
+            .from("partidas")
+
+            .insert({
+
+                codigo: codigo,
+
+                estado: "esperando",
+
+                pregunta_actual: 0
+
+            })
+
+            .select()
+
+            .single();
+
+
+
+    if (error) {
+
+
+        console.error(error);
 
 
         mensaje.className =
-            "mensaje espera";
+            "mensaje error";
+
 
         mensaje.innerText =
-            "Buscando partida...";
+            "❌ Error: " +
+            error.message;
 
 
-        // Buscar partida
-
-        const { data: partida, error } =
-            await supabaseClient
-                .from("partidas")
-                .select("*")
-                .eq("codigo", codigo)
-                .maybeSingle();
-
-
-        if (error) {
-
-            console.error(error);
-
-            mensaje.className =
-                "mensaje error";
-
-            mensaje.innerText =
-                "❌ Error al buscar la partida.";
-
-            return;
-        }
-
-
-        if (!partida) {
-
-            mensaje.className =
-                "mensaje error";
-
-            mensaje.innerText =
-                "❌ No existe una partida con ese código.";
-
-            return;
-        }
-
-
-        // Comprobar estado
-
-        if (partida.estado !== "esperando") {
-
-            mensaje.className =
-                "mensaje error";
-
-            mensaje.innerText =
-                "❌ Esta partida ya comenzó.";
-
-            return;
-        }
-
-
-        // Crear jugador
-
-        const { data: jugador, error: errorJugador } =
-            await supabaseClient
-                .from("jugadores")
-                .insert({
-
-                    partida_id: partida.id,
-
-                    nombre: nombre,
-
-                    puntuacion: 0,
-
-                    conectado: true
-
-                })
-                .select()
-                .single();
-
-
-        if (errorJugador) {
-
-            console.error(errorJugador);
-
-            mensaje.className =
-                "mensaje error";
-
-            mensaje.innerText =
-                "❌ No se pudo entrar al juego.";
-
-            return;
-        }
-
-
-        // Guardar datos
-
-        partidaActual = partida;
-
-        jugadorActual = jugador;
-
-
-        // Mostrar pantalla de espera
-
-        document.getElementById(
-            "nombreJugador"
-        ).innerText =
-            nombre;
-
-
-        mostrarPantalla("espera");
-
-
-        // Escuchar cambios de la partida
-
-        escucharPartida(partida.id);
+        return;
 
     }
 
 
-    // ==========================================
-    // REALTIME DE PARTIDA
-    // ==========================================
 
-    function escucharPartida(partidaId) {
+    // Guardar partida
+
+    partidaActual =
+        data;
+
+
+
+    // Mostrar código
+
+    document.getElementById(
+        "codigoJuego"
+    ).innerText =
+        data.codigo;
+
+
+
+    document.getElementById(
+        "partidaProfesor"
+    ).style.display =
+        "block";
+
+
+
+    mensaje.className =
+        "mensaje exito";
+
+
+    mensaje.innerText =
+        "✅ Partida creada";
+
+
+
+    // Escuchar jugadores
+
+    escucharJugadores(
+        data.id
+    );
+
+
+
+    // Cargar jugadores
+
+    cargarJugadores(
+        data.id
+    );
+
+}
+
+
+
+// ==========================================
+// INICIAR PARTIDA
+// ==========================================
+
+
+async function iniciarPartida() {
+
+
+    if (!partidaActual) {
+
+
+        alert(
+            "Primero debes crear una partida."
+        );
+
+
+        return;
+
+    }
+
+
+
+    // Comprobar jugadores
+
+    const { data: jugadores,
+            error: errorJugadores } =
+
+        await supabaseClient
+
+            .from("jugadores")
+
+            .select("id")
+
+            .eq(
+                "partida_id",
+                partidaActual.id
+            );
+
+
+
+    if (errorJugadores) {
+
+
+        console.error(
+            errorJugadores
+        );
+
+
+        alert(
+            "No se pudieron comprobar los jugadores."
+        );
+
+
+        return;
+
+    }
+
+
+
+    if (
+        !jugadores ||
+        jugadores.length === 0
+    ) {
+
+
+        alert(
+            "Necesitas al menos un estudiante para iniciar."
+        );
+
+
+        return;
+
+    }
+
+
+
+    // Cambiar estado
+
+    const { data, error } =
+
+        await supabaseClient
+
+            .from("partidas")
+
+            .update({
+
+                estado: "jugando",
+
+                pregunta_actual: 1
+
+            })
+
+            .eq(
+                "id",
+                partidaActual.id
+            )
+
+            .select()
+
+            .single();
+
+
+
+    if (error) {
+
+
+        console.error(error);
+
+
+        alert(
+            "❌ No se pudo iniciar la partida."
+        );
+
+
+        return;
+
+    }
+
+
+
+    // Actualizar variable
+
+    partidaActual =
+        data;
+
+
+
+    console.log(
+        "🚀 Partida iniciada",
+        data
+    );
+
+}
+
+
+
+// ==========================================
+// CARGAR JUGADORES
+// ==========================================
+
+
+async function cargarJugadores(
+    partidaId
+) {
+
+
+    const { data, error } =
+
+        await supabaseClient
+
+            .from("jugadores")
+
+            .select("*")
+
+            .eq(
+                "partida_id",
+                partidaId
+            )
+
+            .order(
+                "creado_en",
+                {
+                    ascending: true
+                }
+            );
+
+
+
+    if (error) {
+
+
+        console.error(
+            error
+        );
+
+
+        return;
+
+    }
+
+
+
+    mostrarJugadores(
+        data
+    );
+
+}
+
+
+
+// ==========================================
+// MOSTRAR JUGADORES
+// ==========================================
+
+
+function mostrarJugadores(
+    jugadores
+) {
+
+
+    const lista =
+        document.getElementById(
+            "listaJugadores"
+        );
+
+
+
+    if (
+        !jugadores ||
+        jugadores.length === 0
+    ) {
+
+
+        lista.innerHTML =
+            "Esperando jugadores...";
+
+
+        return;
+
+    }
+
+
+
+    lista.innerHTML =
+        "";
+
+
+
+    jugadores.forEach(
+        jugador => {
+
+
+            const div =
+                document.createElement(
+                    "div"
+                );
+
+
+            div.style.padding =
+                "8px";
+
+
+            div.style.fontSize =
+                "18px";
+
+
+            div.innerText =
+                "👤 " +
+                jugador.nombre;
+
+
+            lista.appendChild(
+                div
+            );
+
+        }
+    );
+
+}
+
+
+
+// ==========================================
+// REALTIME DE JUGADORES
+// ==========================================
+
+
+function escucharJugadores(
+    partidaId
+) {
+
+
+    if (canalJugadores) {
+
 
         supabaseClient
+            .removeChannel(
+                canalJugadores
+            );
+
+    }
+
+
+
+    canalJugadores =
+
+        supabaseClient
+
             .channel(
-                "partida-" + partidaId
+                "jugadores-" +
+                partidaId
             )
+
             .on(
+
                 "postgres_changes",
+
                 {
-                    event: "UPDATE",
+
+                    event: "*",
+
                     schema: "public",
+
+                    table: "jugadores",
+
+                    filter:
+                        "partida_id=eq." +
+                        partidaId
+
+                },
+
+                function () {
+
+
+                    cargarJugadores(
+                        partidaId
+                    );
+
+                }
+
+            )
+
+            .subscribe();
+
+}
+
+
+
+// ==========================================
+// UNIRSE COMO ESTUDIANTE
+// ==========================================
+
+
+async function unirsePartida() {
+
+
+    const codigo =
+
+        document
+            .getElementById(
+                "codigoEntrada"
+            )
+            .value
+            .trim();
+
+
+
+    const nombre =
+
+        document
+            .getElementById(
+                "nombreEntrada"
+            )
+            .value
+            .trim();
+
+
+
+    const mensaje =
+
+        document.getElementById(
+            "mensajeEstudiante"
+        );
+
+
+
+    // Validar código
+
+    if (
+        codigo.length !== 6
+    ) {
+
+
+        mensaje.className =
+            "mensaje error";
+
+
+        mensaje.innerText =
+            "❌ El código debe tener 6 números.";
+
+
+        return;
+
+    }
+
+
+
+    // Validar nombre
+
+    if (
+        nombre.length < 1
+    ) {
+
+
+        mensaje.className =
+            "mensaje error";
+
+
+        mensaje.innerText =
+            "❌ Escribe tu nombre.";
+
+
+        return;
+
+    }
+
+
+
+    mensaje.className =
+        "mensaje espera";
+
+
+    mensaje.innerText =
+        "Buscando partida...";
+
+
+
+    // Buscar partida
+
+    const {
+        data: partida,
+        error
+    } =
+
+        await supabaseClient
+
+            .from("partidas")
+
+            .select("*")
+
+            .eq(
+                "codigo",
+                codigo
+            )
+
+            .maybeSingle();
+
+
+
+    if (error) {
+
+
+        console.error(
+            error
+        );
+
+
+        mensaje.className =
+            "mensaje error";
+
+
+        mensaje.innerText =
+            "❌ Error al buscar la partida.";
+
+
+        return;
+
+    }
+
+
+
+    if (!partida) {
+
+
+        mensaje.className =
+            "mensaje error";
+
+
+        mensaje.innerText =
+            "❌ No existe una partida con ese código.";
+
+
+        return;
+
+    }
+
+
+
+    // Comprobar estado
+
+    if (
+        partida.estado !==
+        "esperando"
+    ) {
+
+
+        mensaje.className =
+            "mensaje error";
+
+
+        mensaje.innerText =
+            "❌ Esta partida ya comenzó.";
+
+
+        return;
+
+    }
+
+
+
+    // Crear jugador
+
+    const {
+        data: jugador,
+        error: errorJugador
+    } =
+
+        await supabaseClient
+
+            .from("jugadores")
+
+            .insert({
+
+                partida_id:
+                    partida.id,
+
+                nombre:
+                    nombre,
+
+                puntuacion:
+                    0,
+
+                conectado:
+                    true
+
+            })
+
+            .select()
+
+            .single();
+
+
+
+    if (errorJugador) {
+
+
+        console.error(
+            errorJugador
+        );
+
+
+        mensaje.className =
+            "mensaje error";
+
+
+        mensaje.innerText =
+            "❌ No se pudo entrar al juego.";
+
+
+        return;
+
+    }
+
+
+
+    // Guardar datos
+
+    partidaActual =
+        partida;
+
+
+    jugadorActual =
+        jugador;
+
+
+
+    // Mostrar nombre
+
+    document.getElementById(
+        "nombreJugador"
+    ).innerText =
+        nombre;
+
+
+
+    // Mostrar espera
+
+    mostrarPantalla(
+        "espera"
+    );
+
+
+
+    // Escuchar partida
+
+    escucharPartida(
+        partida.id
+    );
+
+}
+
+
+
+// ==========================================
+// REALTIME DE PARTIDA
+// ==========================================
+
+
+function escucharPartida(
+    partidaId
+) {
+
+
+    // Eliminar canal anterior
+
+    if (canalPartida) {
+
+
+        supabaseClient
+            .removeChannel(
+                canalPartida
+            );
+
+    }
+
+
+
+    canalPartida =
+
+        supabaseClient
+
+            .channel(
+                "partida-" +
+                partidaId
+            )
+
+            .on(
+
+                "postgres_changes",
+
+                {
+
+                    event: "UPDATE",
+
+                    schema: "public",
+
                     table: "partidas",
+
                     filter:
                         "id=eq." +
                         partidaId
+
                 },
+
                 function (payload) {
+
 
                     console.log(
                         "Cambio en partida:",
                         payload.new
                     );
 
+
+
+                    // Actualizar partida
+
+                    partidaActual =
+                        payload.new;
+
+
+
+                    // Si comenzó
+
+                    if (
+                        payload.new.estado ===
+                        "jugando"
+                    ) {
+
+
+                        console.log(
+                            "🚀 ¡El quiz comenzó!"
+                        );
+
+
+                        // Mostrar pregunta
+
+                        cargarPregunta(
+                            payload.new.pregunta_actual
+                        );
+
+
+                        mostrarPantalla(
+                            "quizEstudiante"
+                        );
+
+                    }
+
                 }
+
             )
+
             .subscribe();
 
+}
+
+
+
+// ==========================================
+// CARGAR PREGUNTA
+// ==========================================
+
+
+async function cargarPregunta(
+    numeroPregunta
+) {
+
+
+    console.log(
+        "Cargando pregunta:",
+        numeroPregunta
+    );
+
+
+
+    const {
+        data,
+        error
+    } =
+
+        await supabaseClient
+
+            .from("preguntas")
+
+            .select("*")
+
+            .eq(
+                "id",
+                numeroPregunta
+            )
+
+            .maybeSingle();
+
+
+
+    if (error) {
+
+
+        console.error(
+            error
+        );
+
+
+        document.getElementById(
+            "textoPregunta"
+        ).innerText =
+            "Error al cargar la pregunta.";
+
+
+        return;
+
     }
 
 
-    // ==========================================
-    // COMPROBAR CONEXIÓN
-    // ==========================================
 
-    async function comprobarConexion() {
-
-        const { error } =
-            await supabaseClient
-                .from("partidas")
-                .select("id")
-                .limit(1);
+    if (!data) {
 
 
-        if (error) {
+        document.getElementById(
+            "textoPregunta"
+        ).innerText =
+            "No se encontró la pregunta.";
 
-            console.error(
-                "Error Supabase:",
-                error
+
+        return;
+
+    }
+
+
+
+    // Número
+
+    document.getElementById(
+        "numeroPregunta"
+    ).innerText =
+        "Pregunta " +
+        numeroPregunta;
+
+
+
+    // Pregunta
+
+    document.getElementById(
+        "textoPregunta"
+    ).innerText =
+        data.pregunta;
+
+
+
+    // Opciones
+
+    const opciones =
+        document.getElementById(
+            "opciones"
+        );
+
+
+    opciones.innerHTML =
+        "";
+
+
+
+    const letras =
+        ["A", "B", "C", "D"];
+
+
+
+    const valores =
+        [
+            data.opcion_a,
+            data.opcion_b,
+            data.opcion_c,
+            data.opcion_d
+        ];
+
+
+
+    for (
+        let i = 0;
+        i < 4;
+        i++
+    ) {
+
+
+        const boton =
+            document.createElement(
+                "button"
             );
 
-        } else {
 
-            console.log(
-                "✅ Supabase conectado correctamente"
-            );
+        boton.className =
+            "opcion";
+
+
+        boton.innerText =
+            letras[i] +
+            ". " +
+            valores[i];
+
+
+        boton.onclick =
+            function () {
+
+                seleccionarRespuesta(
+                    letras[i]
+                );
+
+            };
+
+
+        opciones.appendChild(
+            boton
+        );
+
+    }
+
+}
+
+
+
+// ==========================================
+// SELECCIONAR RESPUESTA
+// ==========================================
+
+
+function seleccionarRespuesta(
+    respuesta
+) {
+
+
+    console.log(
+        "Respuesta seleccionada:",
+        respuesta
+    );
+
+
+
+    const botones =
+        document.querySelectorAll(
+            ".opcion"
+        );
+
+
+
+    botones.forEach(
+        boton => {
+
+            boton.disabled =
+                true;
+
+            boton.style.opacity =
+                "0.6";
 
         }
+    );
+
+
+
+    alert(
+        "Seleccionaste: " +
+        respuesta
+    );
+
+}
+
+
+
+// ==========================================
+// COMPROBAR CONEXIÓN
+// ==========================================
+
+
+async function comprobarConexion() {
+
+
+    const {
+        error
+    } =
+
+        await supabaseClient
+
+            .from("partidas")
+
+            .select("id")
+
+            .limit(1);
+
+
+
+    if (error) {
+
+
+        console.error(
+            "Error Supabase:",
+            error
+        );
+
+
+    } else {
+
+
+        console.log(
+            "✅ Supabase conectado correctamente"
+        );
 
     }
 
+}
 
-    // Iniciar
 
-    comprobarConexion();
+
+// ==========================================
+// INICIAR
+// ==========================================
+
+
+comprobarConexion();
 
 </script>
 
+
 </body>
+
 </html>
