@@ -1,30 +1,17 @@
 /* =====================================================
-   SUPABASE
+   SUPABASE CLIENT & CONFIGURACIÓN
 ===================================================== */
 
-const SUPABASE_URL =
-"https://ohmtgkmbrxwtalyamdcg.supabase.co";
+const SUPABASE_URL = "https://ohmtgkmbrxwtalyamdcg.supabase.co";
+const SUPABASE_KEY = "sb_publishable_ec57o1PkClVIioHISyei8A_v_Qj619r";
 
-const SUPABASE_KEY =
-"sb_publishable_ec57o1PkClVIioHISyei8A_v_Qj619r";
-
-const supabaseClient =
-supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_KEY
-);
-
-
-/* =====================================================
-   CONFIGURACIÓN
-===================================================== */
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const DURACION_PREGUNTA = 35;
 const DURACION_PARTIDA = 320;
 
-
 /* =====================================================
-   VARIABLES
+   ESTADO GLOBAL DE LA APLICACIÓN
 ===================================================== */
 
 let partidaActual = null;
@@ -32,1784 +19,639 @@ let jugadorActual = null;
 let preguntas = [];
 
 let inicioPregunta = null;
-
 let intervaloPregunta = null;
 let intervaloGlobal = null;
-let intervaloJugadores = null;
-let intervaloEstadoPartida = null;
 
 let respuestaEnviada = false;
 let preguntaMostrada = null;
 
+// Canales WebSocket Realtime
+let canalJugadores = null;
+let canalPartida = null;
+
 
 /* =====================================================
-   CAMBIAR A PROFESOR
+   NAVEGACIÓN DE VISTAS
 ===================================================== */
 
-function mostrarProfesor(){
+function mostrarProfesor() {
+    document.getElementById("inicio").classList.add("hidden");
+    document.getElementById("profesor").classList.remove("hidden");
+}
 
-    document
-        .getElementById("inicio")
-        .classList.add("hidden");
-
-    document
-        .getElementById("profesor")
-        .classList.remove("hidden");
-
+function mostrarEstudiante() {
+    document.getElementById("inicio").classList.add("hidden");
+    document.getElementById("estudiante").classList.remove("hidden");
 }
 
 
 /* =====================================================
-   CAMBIAR A ESTUDIANTE
+   CREAR PARTIDA (PROFESOR)
 ===================================================== */
 
-function mostrarEstudiante(){
+async function crearPartida() {
+    const codigo = Math.floor(100000 + Math.random() * 900000).toString();
 
-    document
-        .getElementById("inicio")
-        .classList.add("hidden");
-
-    document
-        .getElementById("estudiante")
-        .classList.remove("hidden");
-
-}
-
-
-/* =====================================================
-   CREAR PARTIDA
-===================================================== */
-
-async function crearPartida(){
-
-    const codigo =
-        Math.floor(
-            100000 +
-            Math.random() * 900000
-        ).toString();
-
-    const { data, error } =
-        await supabaseClient
+    const { data, error } = await supabaseClient
         .from("partidas")
         .insert({
-
             codigo: codigo,
-
             estado: "esperando",
-
             pregunta_actual: 0,
-
-            duracion_segundos:
-                DURACION_PARTIDA
-
+            duracion_segundos: DURACION_PARTIDA
         })
         .select()
         .single();
 
-
-    if(error){
-
-        console.error(
-            "Error creando partida:",
-            error
-        );
-
-        alert(
-            "Error creando la partida:\n\n" +
-            error.message
-        );
-
+    if (error) {
+        console.error("Error creando partida:", error);
+        alert("Error creando la partida:\n\n" + error.message);
         return;
     }
 
-
     partidaActual = data;
 
-
-    document
-        .getElementById("crearPartidaPanel")
-        .classList.add("hidden");
-
-
-    document
-        .getElementById("partidaProfesor")
-        .classList.remove("hidden");
-
-
-    document
-        .getElementById("codigoPartida")
-        .textContent = codigo;
-
+    document.getElementById("crearPartidaPanel").classList.add("hidden");
+    document.getElementById("partidaProfesor").classList.remove("hidden");
+    document.getElementById("codigoPartida").textContent = codigo;
 
     await cargarPreguntas();
-
-    iniciarActualizacionJugadores();
-
+    
+    // Carga inicial y suscripción Realtime a jugadores
+    await cargarJugadores();
+    suscribirJugadores();
 }
 
 
 /* =====================================================
-   CARGAR PREGUNTAS
+   CARGAR Y SUSCRIBIR PREGUNTAS / JUGADORES
 ===================================================== */
 
-async function cargarPreguntas(){
-
-    const { data, error } =
-        await supabaseClient
+async function cargarPreguntas() {
+    const { data, error } = await supabaseClient
         .from("preguntas")
         .select("*")
         .order("id");
 
-
-    if(error){
-
-        console.error(
-            "Error cargando preguntas:",
-            error
-        );
-
-        alert(
-            "Error cargando preguntas:\n\n" +
-            error.message
-        );
-
+    if (error) {
+        console.error("Error cargando preguntas:", error);
+        alert("Error cargando preguntas:\n\n" + error.message);
         return;
     }
-
 
     preguntas = data || [];
-
 }
 
+async function cargarJugadores() {
+    if (!partidaActual) return;
 
-/* =====================================================
-   ACTUALIZACIÓN DE JUGADORES
-===================================================== */
-
-function iniciarActualizacionJugadores(){
-
-    cargarJugadores();
-
-
-    if(intervaloJugadores){
-
-        clearInterval(
-            intervaloJugadores
-        );
-
-    }
-
-
-    intervaloJugadores =
-        setInterval(
-            cargarJugadores,
-            1000
-        );
-
-}
-
-
-/* =====================================================
-   CARGAR JUGADORES
-===================================================== */
-
-async function cargarJugadores(){
-
-    if(!partidaActual)
-        return;
-
-
-    const { data, error } =
-        await supabaseClient
+    const { data, error } = await supabaseClient
         .from("jugadores")
         .select("*")
-        .eq(
-            "partida_id",
-            partidaActual.id
-        )
-        .order(
-            "puntos",
-            {
-                ascending: false
-            }
-        );
+        .eq("partida_id", partidaActual.id)
+        .order("puntos", { ascending: false });
 
-
-    if(error){
-
-        console.error(
-            "Error cargando jugadores:",
-            error
-        );
-
+    if (error) {
+        console.error("Error cargando jugadores:", error);
         return;
     }
 
+    renderizarListaJugadores(data || []);
+}
 
-    const lista =
-        document.getElementById(
-            "listaJugadores"
-        );
+function renderizarListaJugadores(jugadores) {
+    const lista = document.getElementById("listaJugadores");
+    const contador = document.getElementById("contadorJugadores");
 
-    const contador =
-        document.getElementById(
-            "contadorJugadores"
-        );
-
+    if (!lista || !contador) return;
 
     lista.innerHTML = "";
+    contador.textContent = `${jugadores.length} ${jugadores.length === 1 ? "jugador" : "jugadores"}`;
 
-
-    const jugadores =
-        data || [];
-
-
-    contador.textContent =
-        jugadores.length +
-        (
-            jugadores.length === 1
-            ? " jugador"
-            : " jugadores"
-        );
-
-
-    jugadores.forEach(
-        jugador => {
-
-            const div =
-                document.createElement(
-                    "div"
-                );
-
-            div.className =
-                "jugador";
-
-            div.innerHTML =
-                "👤 " +
-                escapeHtml(
-                    jugador.nombre
-                );
-
-            lista.appendChild(div);
-
-        }
-    );
-
+    jugadores.forEach(jugador => {
+        const div = document.createElement("div");
+        div.className = "jugador";
+        div.innerHTML = `👤 ${escapeHtml(jugador.nombre)}`;
+        lista.appendChild(div);
+    });
 }
 
+function suscribirJugadores() {
+    if (!partidaActual) return;
 
-/* =====================================================
-   TEMPORIZADOR POR PREGUNTA
-===================================================== */
+    if (canalJugadores) {
+        supabaseClient.removeChannel(canalJugadores);
+    }
 
-function iniciarTemporizadorPregunta(){
-
-    detenerTemporizadorPregunta();
-
-
-    inicioPregunta = Date.now();
-
-
-    function actualizarTemporizador(){
-
-        const transcurrido =
-            Math.floor(
-                (Date.now() - inicioPregunta) / 1000
-            );
-
-
-        const restante =
-            DURACION_PREGUNTA -
-            transcurrido;
-
-
-        const tempEstudiante =
-            document.getElementById(
-                "temporizadorPregunta"
-            );
-
-
-        const tempProfesor =
-            document.getElementById(
-                "temporizadorPreguntaProfesor"
-            );
-
-
-        if(restante >= 0){
-
-            const texto =
-                "⏱️ " + restante;
-
-
-            if(tempEstudiante)
-                tempEstudiante.textContent =
-                    texto;
-
-
-            if(tempProfesor)
-                tempProfesor.textContent =
-                    texto;
-
-        }
-        else{
-
-            detenerTemporizadorPregunta();
-
-
-            if(tempEstudiante)
-                tempEstudiante.textContent =
-                    "⏱️ 0";
-
-
-            if(tempProfesor)
-                tempProfesor.textContent =
-                    "⌛ ¡Tiempo agotado!";
-
-
-            if(!respuestaEnviada){
-
-                const botones =
-                    document.querySelectorAll(
-                        ".opcion"
-                    );
-
-
-                botones.forEach(
-                    boton =>
-                        boton.disabled = true
-                );
-
-
-                const resultado =
-                    document.getElementById(
-                        "resultadoRespuesta"
-                    );
-
-
-                if(
-                    resultado &&
-                    resultado.textContent === ""
-                ){
-
-                    resultado.textContent =
-                        "⏰ ¡Tiempo agotado!";
-
-                    resultado.className =
-                        "resultado error";
-
-                }
-
+    canalJugadores = supabaseClient
+        .channel(`jugadores-partida-${partidaActual.id}`)
+        .on(
+            "postgres_changes",
+            {
+                event: "*",
+                schema: "public",
+                table: "jugadores",
+                filter: `partida_id=eq.${partidaActual.id}`
+            },
+            () => {
+                // Al detectar cualquier cambio en los jugadores, recargar la lista
+                cargarJugadores();
             }
-
-        }
-
-    }
-
-
-    actualizarTemporizador();
-
-
-    intervaloPregunta =
-        setInterval(
-            actualizarTemporizador,
-            1000
-        );
-
+        )
+        .subscribe();
 }
 
 
 /* =====================================================
-   DETENER TEMPORIZADOR
+   INICIAR Y GESTIONAR PARTIDA (PROFESOR)
 ===================================================== */
 
-function detenerTemporizadorPregunta(){
+async function iniciarPartida() {
+    if (!preguntas.length) await cargarPreguntas();
 
-    if(intervaloPregunta){
-
-        clearInterval(
-            intervaloPregunta
-        );
-
-        intervaloPregunta = null;
-
-    }
-
-}
-
-
-/* =====================================================
-   INICIAR PARTIDA
-===================================================== */
-
-async function iniciarPartida(){
-
-    if(!preguntas.length){
-
-        await cargarPreguntas();
-
-    }
-
-
-    if(!preguntas.length){
-
-        alert(
-            "No hay preguntas en la tabla preguntas."
-        );
-
+    if (!preguntas.length) {
+        alert("No hay preguntas disponibles en la base de datos.");
         return;
     }
 
+    const inicio = new Date().toISOString();
 
-    const inicio =
-        new Date().toISOString();
-
-
-    const { data, error } =
-        await supabaseClient
+    const { data, error } = await supabaseClient
         .from("partidas")
         .update({
-
             estado: "jugando",
-
             pregunta_actual: 1,
-
             tiempo_inicio: inicio,
-
-            duracion_segundos:
-                DURACION_PARTIDA
-
+            duracion_segundos: DURACION_PARTIDA
         })
-        .eq(
-            "id",
-            partidaActual.id
-        )
+        .eq("id", partidaActual.id)
         .select()
         .single();
 
-
-    if(error){
-
-        console.error(
-            "Error iniciando partida:",
-            error
-        );
-
-        alert(
-            "Error iniciando el quiz:\n\n" +
-            error.message
-        );
-
+    if (error) {
+        console.error("Error iniciando partida:", error);
+        alert("Error iniciando el quiz:\n\n" + error.message);
         return;
     }
 
-
     partidaActual = data;
 
-
-    document
-        .getElementById("esperandoProfesor")
-        .classList.add("hidden");
-
-
-    document
-        .getElementById("quizProfesor")
-        .classList.remove("hidden");
-
+    document.getElementById("esperandoProfesor").classList.add("hidden");
+    document.getElementById("quizProfesor").classList.remove("hidden");
 
     mostrarPreguntaProfesor(1);
-
-
     iniciarTemporizadorGlobal();
-
 }
 
+function mostrarPreguntaProfesor(numero) {
+    const pregunta = preguntas[numero - 1];
+    if (!pregunta) return;
 
-/* =====================================================
-   MOSTRAR PREGUNTA PROFESOR
-===================================================== */
-
-function mostrarPreguntaProfesor(numero){
-
-    const indice =
-        numero - 1;
-
-
-    const pregunta =
-        preguntas[indice];
-
-
-    if(!pregunta)
-        return;
-
-
-    document
-        .getElementById(
-            "numeroPreguntaProfesor"
-        )
-        .textContent =
-            "Pregunta " +
-            numero +
-            " de " +
-            preguntas.length;
-
-
-    document
-        .getElementById(
-            "preguntaProfesor"
-        )
-        .textContent =
-            pregunta.pregunta;
-
+    document.getElementById("numeroPreguntaProfesor").textContent = `Pregunta ${numero} de ${preguntas.length}`;
+    document.getElementById("preguntaProfesor").textContent = pregunta.pregunta;
 
     iniciarTemporizadorPregunta();
-
 }
 
-
-/* =====================================================
-   SIGUIENTE PREGUNTA
-===================================================== */
-
-async function siguientePregunta(){
-
-    if(!partidaActual)
-        return;
-
-
-    if(
-        partidaActual.estado !==
-        "jugando"
-    )
-        return;
-
+async function siguientePregunta() {
+    if (!partidaActual || partidaActual.estado !== "jugando") return;
 
     detenerTemporizadorPregunta();
+    const siguiente = Number(partidaActual.pregunta_actual) + 1;
 
-
-    const siguiente =
-        Number(
-            partidaActual.pregunta_actual
-        ) + 1;
-
-
-    if(
-        siguiente >
-        preguntas.length
-    ){
-
+    if (siguiente > preguntas.length) {
         await finalizarPartida();
-
         return;
-
     }
 
-
-    const { data, error } =
-        await supabaseClient
+    const { data, error } = await supabaseClient
         .from("partidas")
-        .update({
-
-            pregunta_actual:
-                siguiente
-
-        })
-        .eq(
-            "id",
-            partidaActual.id
-        )
-        .eq(
-            "estado",
-            "jugando"
-        )
+        .update({ pregunta_actual: siguiente })
+        .eq("id", partidaActual.id)
+        .eq("estado", "jugando")
         .select()
         .single();
 
-
-    if(error){
-
-        console.error(
-            "Error siguiente pregunta:",
-            error
-        );
-
+    if (error) {
+        console.error("Error al avanzar pregunta:", error);
         return;
     }
-
 
     partidaActual = data;
-
-
-    mostrarPreguntaProfesor(
-        siguiente
-    );
-
+    mostrarPreguntaProfesor(siguiente);
 }
 
 
 /* =====================================================
-   UNIRSE A PARTIDA
+   UNIRSE Y ESCUCHAR PARTIDA (ESTUDIANTE)
 ===================================================== */
 
-async function unirsePartida(){
+async function unirsePartida() {
+    const codigo = document.getElementById("codigoInput").value.trim();
+    const nombre = document.getElementById("nombreInput").value.trim();
+    const mensaje = document.getElementById("mensajeEstudiante");
 
-    const codigo =
-        document
-        .getElementById(
-            "codigoInput"
-        )
-        .value
-        .trim();
-
-
-    const nombre =
-        document
-        .getElementById(
-            "nombreInput"
-        )
-        .value
-        .trim();
-
-
-    const mensaje =
-        document.getElementById(
-            "mensajeEstudiante"
-        );
-
-
-    if(!codigo || !nombre){
-
-        mensaje.textContent =
-            "Completa el código y tu nombre.";
-
-        mensaje.className =
-            "mensaje error";
-
+    if (!codigo || !nombre) {
+        mensaje.textContent = "Completa el código y tu nombre.";
+        mensaje.className = "mensaje error";
         return;
-
     }
 
+    mensaje.textContent = "Conectando...";
+    mensaje.className = "mensaje";
 
-    mensaje.textContent =
-        "Conectando...";
-
-    mensaje.className =
-        "mensaje";
-
-
-    const { data: partida, error } =
-        await supabaseClient
+    const { data: partida, error } = await supabaseClient
         .from("partidas")
         .select("*")
-        .eq(
-            "codigo",
-            codigo
-        )
+        .eq("codigo", codigo)
         .maybeSingle();
 
-
-    if(error){
-
-        console.error(
-            "Error buscando partida:",
-            error
-        );
-
-        mensaje.textContent =
-            "Error buscando la partida.";
-
-        mensaje.className =
-            "mensaje error";
-
+    if (error || !partida) {
+        mensaje.textContent = error ? "Error buscando la partida." : "No existe esa partida.";
+        mensaje.className = "mensaje error";
         return;
-
     }
 
-
-    if(!partida){
-
-        mensaje.textContent =
-            "No existe esa partida.";
-
-        mensaje.className =
-            "mensaje error";
-
+    if (partida.estado !== "esperando") {
+        mensaje.textContent = "La partida ya comenzó o terminó.";
+        mensaje.className = "mensaje error";
         return;
-
     }
 
-
-    if(
-        partida.estado !==
-        "esperando"
-    ){
-
-        mensaje.textContent =
-            "La partida ya comenzó o terminó.";
-
-        mensaje.className =
-            "mensaje error";
-
-        return;
-
-    }
-
-
-    const { data: jugador, error: errorJugador } =
-        await supabaseClient
+    const { data: jugador, error: errorJugador } = await supabaseClient
         .from("jugadores")
         .insert({
-
-            partida_id:
-                partida.id,
-
-            nombre:
-                nombre,
-
+            partida_id: partida.id,
+            nombre: nombre,
             puntos: 0,
-
             correctas: 0
-
         })
         .select()
         .single();
 
-
-    if(errorJugador){
-
-        console.error(
-            "Error creando jugador:",
-            errorJugador
-        );
-
-        mensaje.textContent =
-            "No se pudo ingresar:\n" +
-            errorJugador.message;
-
-        mensaje.className =
-            "mensaje error";
-
+    if (errorJugador) {
+        console.error("Error creando jugador:", errorJugador);
+        mensaje.textContent = "No se pudo ingresar:\n" + errorJugador.message;
+        mensaje.className = "mensaje error";
         return;
-
     }
 
+    partidaActual = partida;
+    jugadorActual = jugador;
 
-    partidaActual =
-        partida;
+    document.getElementById("unirsePanel").classList.add("hidden");
+    document.getElementById("esperandoEstudiante").classList.remove("hidden");
 
+    suscribirCambiosPartidaEstudiante();
+}
 
-    jugadorActual =
-        jugador;
+function suscribirCambiosPartidaEstudiante() {
+    if (!partidaActual) return;
 
+    if (canalPartida) {
+        supabaseClient.removeChannel(canalPartida);
+    }
 
-    document
-        .getElementById(
-            "unirsePanel"
+    canalPartida = supabaseClient
+        .channel(`partida-${partidaActual.id}`)
+        .on(
+            "postgres_changes",
+            {
+                event: "UPDATE",
+                schema: "public",
+                table: "partidas",
+                filter: `id=eq.${partidaActual.id}`
+            },
+            async (payload) => {
+                const nuevaPartida = payload.new;
+                const estadoAnterior = partidaActual.estado;
+                const preguntaAnterior = Number(partidaActual.pregunta_actual);
+                const preguntaNueva = Number(nuevaPartida.pregunta_actual);
+
+                partidaActual = nuevaPartida;
+
+                if (partidaActual.estado === "jugando") {
+                    document.getElementById("esperandoEstudiante").classList.add("hidden");
+                    document.getElementById("quizEstudiante").classList.remove("hidden");
+
+                    if (estadoAnterior !== "jugando" || preguntaNueva !== preguntaAnterior) {
+                        await cargarPreguntaEstudiante(preguntaNueva);
+                    }
+
+                    if (!intervaloGlobal) {
+                        iniciarTemporizadorGlobal();
+                    }
+                } else if (partidaActual.estado === "finalizada") {
+                    limpiarRecursos();
+                    await mostrarFinalEstudiante();
+                }
+            }
         )
-        .classList.add("hidden");
-
-
-    document
-        .getElementById(
-            "esperandoEstudiante"
-        )
-        .classList.remove("hidden");
-
-
-    iniciarActualizacionPartidaEstudiante();
-
+        .subscribe();
 }
 
 
 /* =====================================================
-   ACTUALIZAR ESTADO DEL ESTUDIANTE
+   CARGAR Y RESPONDER PREGUNTAS (ESTUDIANTE)
 ===================================================== */
 
-function iniciarActualizacionPartidaEstudiante(){
+async function cargarPreguntaEstudiante(numero) {
+    if (!preguntas.length) await cargarPreguntas();
 
-    comprobarEstadoEstudiante();
+    const pregunta = preguntas[numero - 1];
+    if (!pregunta) return;
 
+    if (preguntaMostrada === numero && !respuestaEnviada) return;
 
-    if(intervaloEstadoPartida){
+    preguntaMostrada = numero;
+    respuestaEnviada = false;
 
-        clearInterval(
-            intervaloEstadoPartida
-        );
+    document.getElementById("numeroPregunta").textContent = `Pregunta ${numero} de ${preguntas.length}`;
+    document.getElementById("preguntaEstudiante").textContent = pregunta.pregunta;
 
+    const resultado = document.getElementById("resultadoRespuesta");
+    resultado.textContent = "";
+    resultado.className = "resultado";
+
+    const botones = document.querySelectorAll(".opcion");
+    botones.forEach(boton => (boton.disabled = false));
+
+    if (botones.length >= 4) {
+        botones[0].textContent = "A. " + (pregunta.opcion_a || "Opción A");
+        botones[1].textContent = "B. " + (pregunta.opcion_b || "Opción B");
+        botones[2].textContent = "C. " + (pregunta.opcion_c || "Opción C");
+        botones[3].textContent = "D. " + (pregunta.opcion_d || "Opción D");
     }
-
-
-    intervaloEstadoPartida =
-        setInterval(
-            comprobarEstadoEstudiante,
-            1000
-        );
-
-}
-
-
-/* =====================================================
-   COMPROBAR ESTADO
-===================================================== */
-
-async function comprobarEstadoEstudiante(){
-
-    if(!partidaActual)
-        return;
-
-
-    const { data, error } =
-        await supabaseClient
-        .from("partidas")
-        .select("*")
-        .eq(
-            "id",
-            partidaActual.id
-        )
-        .single();
-
-
-    if(error){
-
-        console.error(
-            "Error comprobando estado:",
-            error
-        );
-
-        return;
-
-    }
-
-
-    const estadoAnterior =
-        partidaActual.estado;
-
-
-    const preguntaAnterior =
-        Number(
-            partidaActual.pregunta_actual
-        );
-
-
-    partidaActual =
-        data;
-
-
-    const preguntaNueva =
-        Number(
-            partidaActual.pregunta_actual
-        );
-
-
-    /* ====================================
-       JUGANDO
-    ==================================== */
-
-    if(
-        partidaActual.estado ===
-        "jugando"
-    ){
-
-        document
-            .getElementById(
-                "esperandoEstudiante"
-            )
-            .classList.add("hidden");
-
-
-        document
-            .getElementById(
-                "quizEstudiante"
-            )
-            .classList.remove("hidden");
-
-
-        if(
-            estadoAnterior !== "jugando" ||
-            preguntaNueva !== preguntaAnterior
-        ){
-
-            await cargarPreguntas();
-
-
-            cargarPreguntaEstudiante(
-                preguntaNueva
-            );
-
-        }
-
-
-        if(!intervaloGlobal){
-
-            iniciarTemporizadorGlobal();
-
-        }
-
-    }
-
-
-    /* ====================================
-       FINALIZADA
-    ==================================== */
-
-    if(
-        partidaActual.estado ===
-        "finalizada"
-    ){
-
-        if(intervaloEstadoPartida){
-
-            clearInterval(
-                intervaloEstadoPartida
-            );
-
-            intervaloEstadoPartida =
-                null;
-
-        }
-
-
-        await actualizarJugadorActual();
-
-
-        mostrarFinalEstudiante();
-
-    }
-
-}
-
-
-/* =====================================================
-   CARGAR PREGUNTA ESTUDIANTE
-===================================================== */
-
-async function cargarPreguntaEstudiante(numero){
-
-    const indice =
-        numero - 1;
-
-
-    if(indice < 0)
-        return;
-
-
-    if(!preguntas.length){
-
-        await cargarPreguntas();
-
-    }
-
-
-    const pregunta =
-        preguntas[indice];
-
-
-    if(!pregunta){
-
-        console.error(
-            "No se encontró pregunta:",
-            numero
-        );
-
-        return;
-
-    }
-
-
-    if(
-        preguntaMostrada === numero &&
-        !respuestaEnviada
-    ){
-
-        return;
-
-    }
-
-
-    preguntaMostrada =
-        numero;
-
-
-    respuestaEnviada =
-        false;
-
-
-    document
-        .getElementById(
-            "numeroPregunta"
-        )
-        .textContent =
-            "Pregunta " +
-            numero +
-            " de " +
-            preguntas.length;
-
-
-    document
-        .getElementById(
-            "preguntaEstudiante"
-        )
-        .textContent =
-            pregunta.pregunta;
-
-
-    const resultado =
-        document.getElementById(
-            "resultadoRespuesta"
-        );
-
-
-    resultado.textContent =
-        "";
-
-
-    resultado.className =
-        "resultado";
-
-
-    const botones =
-        document.querySelectorAll(
-            ".opcion"
-        );
-
-
-    botones.forEach(
-        boton =>
-            boton.disabled = false
-    );
-
-
-    if(botones.length >= 4){
-
-        botones[0].textContent =
-            "A. " +
-            (pregunta.opcion_a ||
-             "Opción A");
-
-        botones[1].textContent =
-            "B. " +
-            (pregunta.opcion_b ||
-             "Opción B");
-
-        botones[2].textContent =
-            "C. " +
-            (pregunta.opcion_c ||
-             "Opción C");
-
-        botones[3].textContent =
-            "D. " +
-            (pregunta.opcion_d ||
-             "Opción D");
-
-    }
-
 
     iniciarTemporizadorPregunta();
-
 }
 
-
-/* =====================================================
-   RESPONDER
-===================================================== */
-
-async function responder(opcion){
-
-    if(
-        respuestaEnviada ||
-        !partidaActual ||
-        !jugadorActual
-    ){
-
+async function responder(opcion) {
+    if (respuestaEnviada || !partidaActual || !jugadorActual || partidaActual.estado !== "jugando") {
         return;
-
     }
 
+    respuestaEnviada = true;
 
-    if(
-        partidaActual.estado !==
-        "jugando"
-    ){
+    const botones = document.querySelectorAll(".opcion");
+    botones.forEach(boton => (boton.disabled = true));
 
-        return;
+    const pregunta = preguntas[Number(partidaActual.pregunta_actual) - 1];
+    if (!pregunta) return;
 
-    }
-
-
-    respuestaEnviada =
-        true;
-
-
-    const botones =
-        document.querySelectorAll(
-            ".opcion"
-        );
-
-
-    botones.forEach(
-        boton =>
-            boton.disabled = true
-    );
-
-
-    const indice =
-        Number(
-            partidaActual.pregunta_actual
-        ) - 1;
-
-
-    const pregunta =
-        preguntas[indice];
-
-
-    if(!pregunta)
-        return;
-
-
-    const tiempoUsado =
-        Math.min(
-            (Date.now() - inicioPregunta) / 1000,
-            DURACION_PREGUNTA
-        );
-
-
-    /*
-     * IMPORTANTE:
-     * El SQL usa respuesta_correcta,
-     * NO "correcta".
-     */
-
-    const respuestaCorrecta =
-        String(
-            pregunta.respuesta_correcta
-        ).toUpperCase();
-
-
-    const opcionElegida =
-        String(opcion).toUpperCase();
-
-
-    const esCorrecta =
-        opcionElegida ===
-        respuestaCorrecta;
-
+    const tiempoUsado = Math.min((Date.now() - inicioPregunta) / 1000, DURACION_PREGUNTA);
+    const respuestaCorrecta = String(pregunta.respuesta_correcta).toUpperCase();
+    const opcionElegida = String(opcion).toUpperCase();
+    const esCorrecta = opcionElegida === respuestaCorrecta;
 
     let puntosGanados = 0;
-
-
-    if(esCorrecta){
-
-        puntosGanados =
-            Math.max(
-                200,
-                Math.round(
-                    1000 *
-                    (
-                        1 -
-                        (
-                            tiempoUsado /
-                            DURACION_PREGUNTA
-                        )
-                    )
-                )
-            );
-
+    if (esCorrecta) {
+        puntosGanados = Math.max(
+            200,
+            Math.round(1000 * (1 - tiempoUsado / DURACION_PREGUNTA))
+        );
     }
 
+    const nuevosPuntos = Number(jugadorActual.puntos || 0) + puntosGanados;
+    const nuevasCorrectas = Number(jugadorActual.correctas || 0) + (esCorrecta ? 1 : 0);
 
-    const nuevosPuntos =
-        Number(
-            jugadorActual.puntos || 0
-        ) +
-        puntosGanados;
+    // Guardar registro de respuesta
+    await supabaseClient.from("respuestas").insert({
+        partida_id: partidaActual.id,
+        jugador_id: jugadorActual.id,
+        pregunta_id: pregunta.id,
+        respuesta: opcionElegida,
+        correcta: esCorrecta,
+        puntos: puntosGanados
+    });
 
-
-    const nuevasCorrectas =
-        Number(
-            jugadorActual.correctas || 0
-        ) +
-        (
-            esCorrecta
-            ? 1
-            : 0
-        );
-
-
-    /*
-     * GUARDAR RESPUESTA
-     */
-
-    const { error: errorRespuesta } =
-        await supabaseClient
-        .from("respuestas")
-        .insert({
-
-            partida_id:
-                partidaActual.id,
-
-            jugador_id:
-                jugadorActual.id,
-
-            pregunta_id:
-                pregunta.id,
-
-            respuesta:
-                opcionElegida,
-
-            correcta:
-                esCorrecta,
-
-            puntos:
-                puntosGanados
-
-        });
-
-
-    if(errorRespuesta){
-
-        console.error(
-            "Error guardando respuesta:",
-            errorRespuesta
-        );
-
-    }
-
-
-    /*
-     * ACTUALIZAR JUGADOR
-     */
-
-    const { data, error } =
-        await supabaseClient
+    // Actualizar puntaje del jugador
+    const { data, error } = await supabaseClient
         .from("jugadores")
-        .update({
-
-            puntos:
-                nuevosPuntos,
-
-            correctas:
-                nuevasCorrectas
-
-        })
-        .eq(
-            "id",
-            jugadorActual.id
-        )
+        .update({ puntos: nuevosPuntos, correctas: nuevasCorrectas })
+        .eq("id", jugadorActual.id)
         .select()
         .single();
 
-
-    if(!error && data){
-
-        jugadorActual =
-            data;
-
-    }
-    else if(error){
-
-        console.error(
-            "Error actualizando jugador:",
-            error
-        );
-
+    if (!error && data) {
+        jugadorActual = data;
     }
 
-
-    /*
-     * MOSTRAR RESULTADO
-     */
-
-    const divResultado =
-        document.getElementById(
-            "resultadoRespuesta"
-        );
-
-
-    if(esCorrecta){
-
-        divResultado.textContent =
-            `¡Correcto! 🎉 +${puntosGanados} pts`;
-
-        divResultado.className =
-            "resultado exito";
-
+    const divResultado = document.getElementById("resultadoRespuesta");
+    if (esCorrecta) {
+        divResultado.textContent = `¡Correcto! 🎉 +${puntosGanados} pts`;
+        divResultado.className = "resultado exito";
+    } else {
+        divResultado.textContent = `Incorrecto ❌ (Respuesta: ${respuestaCorrecta})`;
+        divResultado.className = "resultado error";
     }
-    else{
-
-        divResultado.textContent =
-            `Incorrecto ❌ (Respuesta: ${respuestaCorrecta})`;
-
-        divResultado.className =
-            "resultado error";
-
-    }
-
 }
 
 
 /* =====================================================
-   ACTUALIZAR JUGADOR ACTUAL
+   TEMPORIZADORES (PREGUNTA Y GLOBAL)
 ===================================================== */
 
-async function actualizarJugadorActual(){
+function iniciarTemporizadorPregunta() {
+    detenerTemporizadorPregunta();
+    inicioPregunta = Date.now();
 
-    if(!jugadorActual)
-        return;
+    function actualizarTemporizador() {
+        const transcurrido = Math.floor((Date.now() - inicioPregunta) / 1000);
+        const restante = DURACION_PREGUNTA - transcurrido;
 
+        const tempEstudiante = document.getElementById("temporizadorPregunta");
+        const tempProfesor = document.getElementById("temporizadorPreguntaProfesor");
 
-    const { data, error } =
-        await supabaseClient
-        .from("jugadores")
-        .select("*")
-        .eq(
-            "id",
-            jugadorActual.id
-        )
-        .single();
+        if (restante >= 0) {
+            const texto = `⏱️ ${restante}`;
+            if (tempEstudiante) tempEstudiante.textContent = texto;
+            if (tempProfesor) tempProfesor.textContent = texto;
+        } else {
+            detenerTemporizadorPregunta();
 
+            if (tempEstudiante) tempEstudiante.textContent = "⏱️ 0";
+            if (tempProfesor) tempProfesor.textContent = "⌛ ¡Tiempo agotado!";
 
-    if(!error && data){
+            if (!respuestaEnviada) {
+                const botones = document.querySelectorAll(".opcion");
+                botones.forEach(boton => (boton.disabled = true));
 
-        jugadorActual =
-            data;
-
+                const resultado = document.getElementById("resultadoRespuesta");
+                if (resultado && resultado.textContent === "") {
+                    resultado.textContent = "⏰ ¡Tiempo agotado!";
+                    resultado.className = "resultado error";
+                }
+            }
+        }
     }
 
+    actualizarTemporizador();
+    intervaloPregunta = setInterval(actualizarTemporizador, 1000);
 }
 
-
-/* =====================================================
-   TEMPORIZADOR GLOBAL
-===================================================== */
-
-function iniciarTemporizadorGlobal(){
-
-    if(intervaloGlobal){
-
-        clearInterval(
-            intervaloGlobal
-        );
-
+function detenerTemporizadorPregunta() {
+    if (intervaloPregunta) {
+        clearInterval(intervaloPregunta);
+        intervaloPregunta = null;
     }
+}
 
+function iniciarTemporizadorGlobal() {
+    if (intervaloGlobal) clearInterval(intervaloGlobal);
 
-    const duracion =
-        Number(
-            partidaActual.duracion_segundos ||
-            DURACION_PARTIDA
-        );
-
-
-    const inicio =
-        partidaActual.tiempo_inicio
-        ? new Date(
-            partidaActual.tiempo_inicio
-          ).getTime()
+    const duracion = Number(partidaActual.duracion_segundos || DURACION_PARTIDA);
+    const inicio = partidaActual.tiempo_inicio
+        ? new Date(partidaActual.tiempo_inicio).getTime()
         : Date.now();
 
+    function actualizarGlobal() {
+        const transcurrido = Math.floor((Date.now() - inicio) / 1000);
+        const restante = duracion - transcurrido;
 
-    function actualizarGlobal(){
+        if (restante <= 0) {
+            clearInterval(intervaloGlobal);
+            intervaloGlobal = null;
 
-        const transcurrido =
-            Math.floor(
-                (
-                    Date.now() -
-                    inicio
-                ) / 1000
-            );
+            const elemProf = document.getElementById("temporizadorProfesor");
+            const elemEst = document.getElementById("temporizadorEstudiante");
 
+            if (elemProf) elemProf.textContent = "⏳ 00:00";
+            if (elemEst) elemEst.textContent = "⏳ 00:00";
 
-        const restante =
-            duracion -
-            transcurrido;
-
-
-        if(restante <= 0){
-
-            clearInterval(
-                intervaloGlobal
-            );
-
-            intervaloGlobal =
-                null;
-
-
-            const elemProf =
-                document.getElementById(
-                    "temporizadorProfesor"
-                );
-
-
-            const elemEst =
-                document.getElementById(
-                    "temporizadorEstudiante"
-                );
-
-
-            if(elemProf)
-                elemProf.textContent =
-                    "⏳ 00:00";
-
-
-            if(elemEst)
-                elemEst.textContent =
-                    "⏳ 00:00";
-
-
-            /*
-             * Solo el profesor finaliza
-             * la partida.
-             */
-
-            if(!jugadorActual){
-
+            if (!jugadorActual) {
                 finalizarPartida();
-
             }
-
-
             return;
-
         }
 
+        const mins = Math.floor(restante / 60).toString().padStart(2, "0");
+        const segs = (restante % 60).toString().padStart(2, "0");
+        const texto = `⏳ ${mins}:${segs}`;
 
-        const mins =
-            Math.floor(
-                restante / 60
-            )
-            .toString()
-            .padStart(2, "0");
+        const elemProf = document.getElementById("temporizadorProfesor");
+        const elemEst = document.getElementById("temporizadorEstudiante");
 
-
-        const segs =
-            (restante % 60)
-            .toString()
-            .padStart(2, "0");
-
-
-        const texto =
-            `⏳ ${mins}:${segs}`;
-
-
-        const elemProf =
-            document.getElementById(
-                "temporizadorProfesor"
-            );
-
-
-        const elemEst =
-            document.getElementById(
-                "temporizadorEstudiante"
-            );
-
-
-        if(elemProf)
-            elemProf.textContent =
-                texto;
-
-
-        if(elemEst)
-            elemEst.textContent =
-                texto;
-
+        if (elemProf) elemProf.textContent = texto;
+        if (elemEst) elemEst.textContent = texto;
     }
 
-
     actualizarGlobal();
-
-
-    intervaloGlobal =
-        setInterval(
-            actualizarGlobal,
-            1000
-        );
-
+    intervaloGlobal = setInterval(actualizarGlobal, 1000);
 }
 
 
 /* =====================================================
-   FINALIZAR PARTIDA
+   FINALIZACIÓN DE PARTIDA Y RANKING
 ===================================================== */
 
-async function finalizarPartida(){
+async function finalizarPartida() {
+    limpiarRecursos();
 
-    detenerTemporizadorPregunta();
-
-
-    if(intervaloGlobal){
-
-        clearInterval(
-            intervaloGlobal
-        );
-
-        intervaloGlobal =
-            null;
-
-    }
-
-
-    if(intervaloJugadores){
-
-        clearInterval(
-            intervaloJugadores
-        );
-
-        intervaloJugadores =
-            null;
-
-    }
-
-
-    if(partidaActual){
-
-        const { data, error } =
-            await supabaseClient
+    if (partidaActual) {
+        const { data, error } = await supabaseClient
             .from("partidas")
-            .update({
-
-                estado:
-                    "finalizada"
-
-            })
-            .eq(
-                "id",
-                partidaActual.id
-            )
+            .update({ estado: "finalizada" })
+            .eq("id", partidaActual.id)
             .select()
             .single();
 
-
-        if(!error && data){
-
-            partidaActual =
-                data;
-
-        }
-
+        if (!error && data) partidaActual = data;
     }
 
+    document.getElementById("quizProfesor").classList.add("hidden");
+    document.getElementById("finalProfesor").classList.remove("hidden");
 
-    document
-        .getElementById(
-            "quizProfesor"
-        )
-        .classList.add("hidden");
-
-
-    document
-        .getElementById(
-            "finalProfesor"
-        )
-        .classList.remove("hidden");
-
-
-    await cargarRanking(
-        "rankingProfesor"
-    );
-
+    await cargarRanking("rankingProfesor");
 }
 
+async function mostrarFinalEstudiante() {
+    limpiarRecursos();
 
-/* =====================================================
-   FINAL ESTUDIANTE
-===================================================== */
+    if (jugadorActual) {
+        const { data } = await supabaseClient
+            .from("jugadores")
+            .select("*")
+            .eq("id", jugadorActual.id)
+            .single();
 
-async function mostrarFinalEstudiante(){
-
-    detenerTemporizadorPregunta();
-
-
-    if(intervaloGlobal){
-
-        clearInterval(
-            intervaloGlobal
-        );
-
-        intervaloGlobal =
-            null;
-
+        if (data) jugadorActual = data;
     }
 
+    document.getElementById("quizEstudiante").classList.add("hidden");
+    document.getElementById("esperandoEstudiante").classList.add("hidden");
+    document.getElementById("finalEstudiante").classList.remove("hidden");
 
-    await actualizarJugadorActual();
-
-
-    document
-        .getElementById(
-            "quizEstudiante"
-        )
-        .classList.add("hidden");
-
-
-    document
-        .getElementById(
-            "esperandoEstudiante"
-        )
-        .classList.add("hidden");
-
-
-    document
-        .getElementById(
-            "finalEstudiante"
-        )
-        .classList.remove("hidden");
-
-
-    if(jugadorActual){
-
-        document
-            .getElementById(
-                "miResultado"
-            )
-            .textContent =
-
-            `Tu puntuación final: ${
-                jugadorActual.puntos || 0
-            } pts (${
-                jugadorActual.correctas || 0
-            } aciertos)`;
-
+    if (jugadorActual) {
+        document.getElementById("miResultado").textContent = 
+            `Tu puntuación final: ${jugadorActual.puntos || 0} pts (${jugadorActual.correctas || 0} aciertos)`;
     }
 
-
-    await cargarRanking(
-        "rankingEstudiante"
-    );
-
+    await cargarRanking("rankingEstudiante");
 }
 
+async function cargarRanking(contenedorId) {
+    if (!partidaActual) return;
 
-/* =====================================================
-   RANKING
-===================================================== */
-
-async function cargarRanking(
-    contenedorId
-){
-
-    if(!partidaActual)
-        return;
-
-
-    const { data, error } =
-        await supabaseClient
+    const { data, error } = await supabaseClient
         .from("jugadores")
         .select("*")
-        .eq(
-            "partida_id",
-            partidaActual.id
-        )
-        .order(
-            "puntos",
-            {
-                ascending: false
-            }
-        );
+        .eq("partida_id", partidaActual.id)
+        .order("puntos", { ascending: false });
 
-
-    if(error){
-
-        console.error(
-            "Error cargando ranking:",
-            error
-        );
-
+    if (error) {
+        console.error("Error cargando ranking:", error);
         return;
-
     }
 
+    const contenedor = document.getElementById(contenedorId);
+    if (!contenedor) return;
 
-    const contenedor =
-        document.getElementById(
-            contenedorId
-        );
+    contenedor.innerHTML = "";
 
-
-    if(!contenedor)
-        return;
-
-
-    contenedor.innerHTML =
-        "";
-
-
-    (data || []).forEach(
-        (j, index) => {
-
-            const item =
-                document.createElement(
-                    "div"
-                );
-
-
-            item.className =
-                "ranking-item";
-
-
-            item.innerHTML = `
-
-                <span class="posicion">
-                    #${index + 1}
-                </span>
-
-                <span class="nombre-ranking">
-                    ${escapeHtml(j.nombre)}
-                </span>
-
-                <span class="puntos-ranking">
-                    ${j.puntos} pts
-                </span>
-
-                <span class="correctas-ranking">
-                    (${j.correctas} aciertos)
-                </span>
-
-            `;
-
-
-            contenedor.appendChild(
-                item
-            );
-
-        }
-    );
-
+    (data || []).forEach((j, index) => {
+        const item = document.createElement("div");
+        item.className = "ranking-item";
+        item.innerHTML = `
+            <span class="posicion">#${index + 1}</span>
+            <span class="nombre-ranking">${escapeHtml(j.nombre)}</span>
+            <span class="puntos-ranking">${j.puntos} pts</span>
+            <span class="correctas-ranking">(${j.correctas} aciertos)</span>
+        `;
+        contenedor.appendChild(item);
+    });
 }
 
 
 /* =====================================================
-   ESCAPAR HTML
+   UTILIDADES & LIMPIEZA
 ===================================================== */
 
-function escapeHtml(text){
+function limpiarRecursos() {
+    detenerTemporizadorPregunta();
 
-    if(text === null ||
-       text === undefined){
-
-        return "";
-
+    if (intervaloGlobal) {
+        clearInterval(intervaloGlobal);
+        intervaloGlobal = null;
     }
 
+    if (canalJugadores) {
+        supabaseClient.removeChannel(canalJugadores);
+        canalJugadores = null;
+    }
 
+    if (canalPartida) {
+        supabaseClient.removeChannel(canalPartida);
+        canalPartida = null;
+    }
+}
+
+function escapeHtml(text) {
+    if (text === null || text === undefined) return "";
     return String(text)
-        .replace(
-            /&/g,
-            "&amp;"
-        )
-        .replace(
-            /</g,
-            "&lt;"
-        )
-        .replace(
-            />/g,
-            "&gt;"
-        )
-        .replace(
-            /"/g,
-            "&quot;"
-        )
-        .replace(
-            /'/g,
-            "&#039;"
-        );
-
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }
