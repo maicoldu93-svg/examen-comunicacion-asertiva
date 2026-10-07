@@ -1,861 +1,4 @@
-<!DOCTYPE html>
-<html lang="es">
-
-<head>
-
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Quiz Interactivo</title>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<style>
-
-/* ================================
-   GENERAL
-================================ */
-
-*{
-    box-sizing:border-box;
-}
-
-body{
-    margin:0;
-    font-family:Arial,Helvetica,sans-serif;
-    background:linear-gradient(135deg,#667eea,#764ba2);
-    min-height:100vh;
-    color:#222;
-}
-
-.container{
-    width:100%;
-    max-width:900px;
-    margin:auto;
-    padding:20px;
-}
-
-.card{
-    background:white;
-    border-radius:20px;
-    padding:30px;
-    box-shadow:0 10px 30px rgba(0,0,0,.2);
-}
-
-.hidden{
-    display:none !important;
-}
-
-h1,h2,h3{
-    text-align:center;
-}
-
-
-/* ================================
-   INICIO
-================================ */
-
-#inicio{
-    min-height:100vh;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-}
-
-.logo{
-    text-align:center;
-    font-size:45px;
-    font-weight:bold;
-    color:#667eea;
-    margin-bottom:10px;
-}
-
-.subtitulo{
-    text-align:center;
-    color:#777;
-    margin-bottom:30px;
-}
-
-.roles{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:20px;
-}
-
-
-/* ================================
-   BOTONES
-================================ */
-
-button{
-    border:none;
-    border-radius:12px;
-    padding:15px 20px;
-    font-size:17px;
-    font-weight:bold;
-    cursor:pointer;
-    transition:.2s;
-}
-
-button:hover{
-    transform:translateY(-2px);
-}
-
-button:disabled{
-    opacity:.55;
-    cursor:not-allowed;
-    transform:none;
-}
-
-.btn-profesor{
-    background:#667eea;
-    color:white;
-}
-
-.btn-estudiante{
-    background:#764ba2;
-    color:white;
-}
-
-.btn{
-    width:100%;
-    margin-top:10px;
-    background:#667eea;
-    color:white;
-}
-
-.btn-danger{
-    background:#e74c3c;
-    color:white;
-}
-
-
-/* ================================
-   INPUTS
-================================ */
-
-input{
-    width:100%;
-    padding:15px;
-    border:2px solid #ddd;
-    border-radius:10px;
-    font-size:17px;
-    margin:8px 0;
-    outline:none;
-}
-
-input:focus{
-    border-color:#667eea;
-}
-
-
-/* ================================
-   HEADER
-================================ */
-
-.header-game{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    gap:10px;
-    margin-bottom:20px;
-    flex-wrap:wrap;
-}
-
-.codigo{
-    background:#667eea;
-    color:white;
-    padding:10px 18px;
-    border-radius:10px;
-    font-weight:bold;
-    font-size:20px;
-}
-
-.temporizador-global{
-    background:#222;
-    color:white;
-    padding:10px 18px;
-    border-radius:10px;
-    font-weight:bold;
-    font-size:20px;
-}
-
-.temporizador-pregunta{
-    background:#f39c12;
-    color:white;
-    padding:10px 18px;
-    border-radius:10px;
-    font-weight:bold;
-    font-size:20px;
-    text-align:center;
-    margin:15px auto;
-    max-width:240px;
-}
-
-
-/* ================================
-   JUGADORES
-================================ */
-
-.lista-jugadores{
-    display:grid;
-    grid-template-columns:
-        repeat(auto-fit,minmax(150px,1fr));
-    gap:10px;
-    margin:20px 0;
-}
-
-.jugador{
-    background:#f3f4ff;
-    padding:15px;
-    border-radius:10px;
-    text-align:center;
-    font-weight:bold;
-}
-
-
-/* ================================
-   PREGUNTA
-================================ */
-
-.pregunta{
-    font-size:28px;
-    font-weight:bold;
-    text-align:center;
-    margin:30px 0;
-}
-
-.opciones{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:15px;
-}
-
-.opcion{
-    min-height:80px;
-    color:white;
-    font-size:20px;
-}
-
-.opcion-a{
-    background:#e74c3c;
-}
-
-.opcion-b{
-    background:#3498db;
-}
-
-.opcion-c{
-    background:#f1c40f;
-}
-
-.opcion-d{
-    background:#2ecc71;
-}
-
-
-/* ================================
-   RESULTADOS
-================================ */
-
-.resultado{
-    text-align:center;
-    font-size:24px;
-    font-weight:bold;
-    margin:20px 0;
-}
-
-.ranking{
-    margin-top:25px;
-}
-
-.ranking-item{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    padding:15px;
-    margin:8px 0;
-    background:#f5f5f5;
-    border-radius:12px;
-}
-
-.posicion{
-    font-size:22px;
-    font-weight:bold;
-    width:50px;
-}
-
-.nombre-ranking{
-    flex:1;
-    font-weight:bold;
-}
-
-.puntos-ranking{
-    font-weight:bold;
-    color:#667eea;
-}
-
-.correctas-ranking{
-    margin-left:15px;
-    color:#555;
-}
-
-
-/* ================================
-   MENSAJES
-================================ */
-
-.mensaje{
-    text-align:center;
-    margin:15px 0;
-    font-weight:bold;
-}
-
-.exito{
-    color:#27ae60;
-}
-
-.error{
-    color:#e74c3c;
-}
-
-
-/* ================================
-   INFORMACIÓN
-================================ */
-
-.info-puntuacion{
-    background:#f5f6ff;
-    padding:15px;
-    border-radius:12px;
-    margin-top:20px;
-    text-align:center;
-    color:#555;
-}
-
-.estado-conexion{
-    text-align:center;
-    margin-top:15px;
-    color:#777;
-    font-size:14px;
-}
-
-
-/* ================================
-   RESPONSIVE
-================================ */
-
-@media(max-width:600px){
-
-    .roles{
-        grid-template-columns:1fr;
-    }
-
-    .opciones{
-        grid-template-columns:1fr;
-    }
-
-    .pregunta{
-        font-size:22px;
-    }
-
-    .header-game{
-        justify-content:center;
-    }
-
-    .card{
-        padding:20px;
-    }
-
-    .ranking-item{
-        flex-wrap:wrap;
-        gap:5px;
-    }
-
-}
-
-</style>
-
-</head>
-
-
-<body>
-
-
-<!-- =====================================================
-     INICIO
-===================================================== -->
-
-<div id="inicio">
-
-    <div class="container">
-
-        <div class="card">
-
-            <div class="logo">
-                ⚡ QUIZ
-            </div>
-
-            <div class="subtitulo">
-                Quiz interactivo en tiempo real
-            </div>
-
-            <div class="roles">
-
-                <button
-                    class="btn-profesor"
-                    onclick="mostrarProfesor()">
-
-                    👨‍🏫 Profesor
-
-                </button>
-
-                <button
-                    class="btn-estudiante"
-                    onclick="mostrarEstudiante()">
-
-                    👨‍🎓 Estudiante
-
-                </button>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-
-
-
-<!-- =====================================================
-     PROFESOR
-===================================================== -->
-
-<div id="profesor" class="hidden">
-
-    <div class="container">
-
-        <div class="card">
-
-            <div class="header-game">
-
-                <h2>
-                    👨‍🏫 Panel del profesor
-                </h2>
-
-                <div
-                    id="temporizadorProfesor"
-                    class="temporizador-global">
-
-                    ⏳ 05:20
-
-                </div>
-
-            </div>
-
-
-            <!-- CREAR PARTIDA -->
-
-            <div id="crearPartidaPanel">
-
-                <button
-                    class="btn"
-                    onclick="crearPartida()">
-
-                    🎮 Crear nueva partida
-
-                </button>
-
-            </div>
-
-
-            <!-- PARTIDA -->
-
-            <div
-                id="partidaProfesor"
-                class="hidden">
-
-
-                <div
-                    style="
-                    text-align:center;
-                    margin:20px;
-                    ">
-
-                    <div>
-                        Código de partida
-                    </div>
-
-                    <div
-                        id="codigoPartida"
-                        class="codigo"
-                        style="
-                        display:inline-block;
-                        margin-top:10px;
-                        ">
-
-                        ------
-
-                    </div>
-
-                </div>
-
-
-                <h3>
-                    👥 Jugadores
-                </h3>
-
-
-                <div
-                    id="listaJugadores"
-                    class="lista-jugadores">
-
-                </div>
-
-
-                <div
-                    id="contadorJugadores"
-                    style="
-                    text-align:center;
-                    color:#777;
-                    margin-bottom:15px;
-                    ">
-
-                    0 jugadores
-
-                </div>
-
-
-                <!-- ESPERANDO -->
-
-                <div id="esperandoProfesor">
-
-                    <p
-                        style="
-                        text-align:center;
-                        color:#666;
-                        ">
-
-                        Los estudiantes pueden
-                        ingresar con el código.
-
-                    </p>
-
-                    <button
-                        class="btn"
-                        onclick="iniciarPartida()">
-
-                        ▶️ Iniciar quiz
-
-                    </button>
-
-                </div>
-
-
-                <!-- QUIZ -->
-
-                <div
-                    id="quizProfesor"
-                    class="hidden">
-
-                    <div
-                        id="numeroPreguntaProfesor"
-                        style="
-                        text-align:center;
-                        font-weight:bold;
-                        ">
-
-                    </div>
-
-                    <div
-                        id="temporizadorPreguntaProfesor"
-                        class="temporizador-pregunta">
-
-                        ⏱️ 35
-
-                    </div>
-
-
-                    <div
-                        id="preguntaProfesor"
-                        class="pregunta">
-
-                    </div>
-
-
-                    <button
-                        class="btn"
-                        onclick="siguientePregunta()">
-
-                        ➡️ Siguiente pregunta
-
-                    </button>
-
-                </div>
-
-
-                <!-- FINAL -->
-
-                <div
-                    id="finalProfesor"
-                    class="hidden">
-
-                    <h2>
-                        🏆 Quiz finalizado
-                    </h2>
-
-                    <div
-                        id="rankingProfesor"
-                        class="ranking">
-
-                    </div>
-
-                </div>
-
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-
-
-
-<!-- =====================================================
-     ESTUDIANTE
-===================================================== -->
-
-<div id="estudiante" class="hidden">
-
-    <div class="container">
-
-        <div class="card">
-
-
-            <div class="header-game">
-
-                <h2>
-                    👨‍🎓 Estudiante
-                </h2>
-
-                <div
-                    id="temporizadorEstudiante"
-                    class="temporizador-global">
-
-                    ⏳ 05:20
-
-                </div>
-
-            </div>
-
-
-            <!-- UNIRSE -->
-
-            <div id="unirsePanel">
-
-                <input
-                    id="codigoInput"
-                    type="text"
-                    maxlength="6"
-                    placeholder="Código de partida">
-
-
-                <input
-                    id="nombreInput"
-                    type="text"
-                    placeholder="Tu nombre">
-
-
-                <button
-                    class="btn"
-                    onclick="unirsePartida()">
-
-                    🚀 Unirse
-
-                </button>
-
-
-                <div
-                    id="mensajeEstudiante"
-                    class="mensaje">
-
-                </div>
-
-            </div>
-
-
-            <!-- ESPERANDO -->
-
-            <div
-                id="esperandoEstudiante"
-                class="hidden">
-
-                <h2>
-                    ⏳ Esperando...
-                </h2>
-
-                <p
-                    style="text-align:center">
-
-                    Te has unido correctamente.
-
-                </p>
-
-                <p
-                    style="text-align:center">
-
-                    Espera a que el profesor
-                    inicie el quiz.
-
-                </p>
-
-                <div
-                    class="estado-conexion">
-
-                    🟢 Conectado
-
-                </div>
-
-            </div>
-
-
-            <!-- QUIZ -->
-
-            <div
-                id="quizEstudiante"
-                class="hidden">
-
-
-                <div
-                    id="numeroPregunta"
-                    style="
-                    text-align:center;
-                    font-weight:bold;
-                    ">
-
-                </div>
-
-
-                <div
-                    id="temporizadorPregunta"
-                    class="temporizador-pregunta">
-
-                    ⏱️ 35
-
-                </div>
-
-
-                <div
-                    id="preguntaEstudiante"
-                    class="pregunta">
-
-                </div>
-
-
-                <div class="opciones">
-
-                    <button
-                        class="opcion opcion-a"
-                        onclick="responder('A')">
-
-                        A
-
-                    </button>
-
-
-                    <button
-                        class="opcion opcion-b"
-                        onclick="responder('B')">
-
-                        B
-
-                    </button>
-
-
-                    <button
-                        class="opcion opcion-c"
-                        onclick="responder('C')">
-
-                        C
-
-                    </button>
-
-
-                    <button
-                        class="opcion opcion-d"
-                        onclick="responder('D')">
-
-                        D
-
-                    </button>
-
-                </div>
-
-
-                <div
-                    id="resultadoRespuesta"
-                    class="resultado">
-
-                </div>
-
-
-                <div
-                    class="info-puntuacion">
-
-                    ⚡ Respuesta correcta =
-                    hasta <strong>1000 puntos</strong>
-
-                    <br><br>
-
-                    La rapidez determina
-                    cuántos puntos recibes.
-
-                </div>
-
-            </div>
-
-
-            <!-- FINAL -->
-
-            <div
-                id="finalEstudiante"
-                class="hidden">
-
-                <h2>
-                    🏆 Resultado final
-                </h2>
-
-
-                <div
-                    id="miResultado"
-                    class="resultado">
-
-                </div>
-
-
-                <div
-                    id="rankingEstudiante"
-                    class="ranking">
-
-                </div>
-
-            </div>
-
-
-        </div>
-
-    </div>
-
-</div>
-
-
-
-<script>
-
-
+```javascript
 /* =====================================================
    SUPABASE
 ===================================================== */
@@ -866,7 +9,6 @@ const SUPABASE_URL =
 const SUPABASE_KEY =
 "sb_publishable_ec57o1PkClVIioHISyei8A_v_Qj619r";
 
-
 const supabaseClient =
 supabase.createClient(
     SUPABASE_URL,
@@ -875,12 +17,11 @@ supabase.createClient(
 
 
 /* =====================================================
-   CONFIGURACIÓN DEL JUEGO
+   CONFIGURACIÓN
 ===================================================== */
 
-const DURACION_PREGUNTA = 35; // 35 segundos para que respondan los estudiantes
-
-const DURACION_PARTIDA = 320; // 320 segundos de duración global total
+const DURACION_PREGUNTA = 35;
+const DURACION_PARTIDA = 320;
 
 
 /* =====================================================
@@ -888,23 +29,17 @@ const DURACION_PARTIDA = 320; // 320 segundos de duración global total
 ===================================================== */
 
 let partidaActual = null;
-
 let jugadorActual = null;
-
 let preguntas = [];
 
 let inicioPregunta = null;
 
 let intervaloPregunta = null;
-
 let intervaloGlobal = null;
-
 let intervaloJugadores = null;
-
 let intervaloEstadoPartida = null;
 
 let respuestaEnviada = false;
-
 let preguntaMostrada = null;
 
 
@@ -948,28 +83,22 @@ function mostrarEstudiante(){
 
 async function crearPartida(){
 
-    console.log(
-        "Creando partida..."
-    );
-
-
     const codigo =
         Math.floor(
             100000 +
             Math.random() * 900000
         ).toString();
 
-
     const { data, error } =
         await supabaseClient
         .from("partidas")
         .insert({
 
-            codigo:codigo,
+            codigo: codigo,
 
-            estado:"esperando",
+            estado: "esperando",
 
-            pregunta_actual:0,
+            pregunta_actual: 0,
 
             duracion_segundos:
                 DURACION_PARTIDA
@@ -992,46 +121,30 @@ async function crearPartida(){
         );
 
         return;
-
     }
-
-
-    console.log(
-        "Partida creada:",
-        data
-    );
 
 
     partidaActual = data;
 
 
     document
-        .getElementById(
-            "crearPartidaPanel"
-        )
+        .getElementById("crearPartidaPanel")
         .classList.add("hidden");
 
 
     document
-        .getElementById(
-            "partidaProfesor"
-        )
+        .getElementById("partidaProfesor")
         .classList.remove("hidden");
 
 
     document
-        .getElementById(
-            "codigoPartida"
-        )
-        .textContent =
-            codigo;
+        .getElementById("codigoPartida")
+        .textContent = codigo;
 
 
     await cargarPreguntas();
 
-
     iniciarActualizacionJugadores();
-
 
 }
 
@@ -1062,18 +175,10 @@ async function cargarPreguntas(){
         );
 
         return;
-
     }
 
 
-    preguntas =
-        data || [];
-
-
-    console.log(
-        "Preguntas:",
-        preguntas
-    );
+    preguntas = data || [];
 
 }
 
@@ -1098,11 +203,8 @@ function iniciarActualizacionJugadores(){
 
     intervaloJugadores =
         setInterval(
-
             cargarJugadores,
-
             1000
-
         );
 
 }
@@ -1129,7 +231,7 @@ async function cargarJugadores(){
         .order(
             "puntos",
             {
-                ascending:false
+                ascending: false
             }
         );
 
@@ -1142,7 +244,6 @@ async function cargarJugadores(){
         );
 
         return;
-
     }
 
 
@@ -1150,7 +251,6 @@ async function cargarJugadores(){
         document.getElementById(
             "listaJugadores"
         );
-
 
     const contador =
         document.getElementById(
@@ -1182,10 +282,8 @@ async function cargarJugadores(){
                     "div"
                 );
 
-
             div.className =
                 "jugador";
-
 
             div.innerHTML =
                 "👤 " +
@@ -1193,10 +291,7 @@ async function cargarJugadores(){
                     jugador.nombre
                 );
 
-
-            lista.appendChild(
-                div
-            );
+            lista.appendChild(div);
 
         }
     );
@@ -1205,60 +300,103 @@ async function cargarJugadores(){
 
 
 /* =====================================================
-   TEMPORIZADOR POR PREGUNTA (35s)
+   TEMPORIZADOR POR PREGUNTA
 ===================================================== */
 
 function iniciarTemporizadorPregunta(){
 
     detenerTemporizadorPregunta();
 
+
     inicioPregunta = Date.now();
+
 
     function actualizarTemporizador(){
 
-        const transcurrido = Math.floor((Date.now() - inicioPregunta) / 1000);
+        const transcurrido =
+            Math.floor(
+                (Date.now() - inicioPregunta) / 1000
+            );
 
-        const restante = DURACION_PREGUNTA - transcurrido;
+
+        const restante =
+            DURACION_PREGUNTA -
+            transcurrido;
 
 
-        const tempEstudiante = document.getElementById("temporizadorPregunta");
+        const tempEstudiante =
+            document.getElementById(
+                "temporizadorPregunta"
+            );
 
-        const tempProfesor = document.getElementById("temporizadorPreguntaProfesor");
+
+        const tempProfesor =
+            document.getElementById(
+                "temporizadorPreguntaProfesor"
+            );
 
 
         if(restante >= 0){
 
-            const texto = "⏱️ " + restante;
+            const texto =
+                "⏱️ " + restante;
 
-            if(tempEstudiante) tempEstudiante.textContent = texto;
 
-            if(tempProfesor) tempProfesor.textContent = texto;
+            if(tempEstudiante)
+                tempEstudiante.textContent =
+                    texto;
 
-        } else {
+
+            if(tempProfesor)
+                tempProfesor.textContent =
+                    texto;
+
+        }
+        else{
 
             detenerTemporizadorPregunta();
 
-            if(tempEstudiante) tempEstudiante.textContent = "⏱️ 0";
 
-            if(tempProfesor) tempProfesor.textContent = "⌛ ¡Siguiente pregunta!";
+            if(tempEstudiante)
+                tempEstudiante.textContent =
+                    "⏱️ 0";
 
 
-            // Bloquear botones de estudiante al agotar tiempo
+            if(tempProfesor)
+                tempProfesor.textContent =
+                    "⌛ ¡Tiempo agotado!";
+
 
             if(!respuestaEnviada){
 
-                const botones = document.querySelectorAll(".opcion");
+                const botones =
+                    document.querySelectorAll(
+                        ".opcion"
+                    );
 
-                botones.forEach(b => b.disabled = true);
+
+                botones.forEach(
+                    boton =>
+                        boton.disabled = true
+                );
 
 
-                const res = document.getElementById("resultadoRespuesta");
+                const resultado =
+                    document.getElementById(
+                        "resultadoRespuesta"
+                    );
 
-                if(res && res.textContent === ""){
 
-                    res.textContent = "⏰ ¡Tiempo agotado!";
+                if(
+                    resultado &&
+                    resultado.textContent === ""
+                ){
 
-                    res.className = "resultado error";
+                    resultado.textContent =
+                        "⏰ ¡Tiempo agotado!";
+
+                    resultado.className =
+                        "resultado error";
 
                 }
 
@@ -1271,16 +409,27 @@ function iniciarTemporizadorPregunta(){
 
     actualizarTemporizador();
 
-    intervaloPregunta = setInterval(actualizarTemporizador, 1000);
+
+    intervaloPregunta =
+        setInterval(
+            actualizarTemporizador,
+            1000
+        );
 
 }
 
+
+/* =====================================================
+   DETENER TEMPORIZADOR
+===================================================== */
 
 function detenerTemporizadorPregunta(){
 
     if(intervaloPregunta){
 
-        clearInterval(intervaloPregunta);
+        clearInterval(
+            intervaloPregunta
+        );
 
         intervaloPregunta = null;
 
@@ -1309,7 +458,6 @@ async function iniciarPartida(){
         );
 
         return;
-
     }
 
 
@@ -1322,11 +470,11 @@ async function iniciarPartida(){
         .from("partidas")
         .update({
 
-            estado:"jugando",
+            estado: "jugando",
 
-            pregunta_actual:1,
+            pregunta_actual: 1,
 
-            tiempo_inicio:inicio,
+            tiempo_inicio: inicio,
 
             duracion_segundos:
                 DURACION_PARTIDA
@@ -1353,31 +501,23 @@ async function iniciarPartida(){
         );
 
         return;
-
     }
 
 
-    partidaActual =
-        data;
+    partidaActual = data;
 
 
     document
-        .getElementById(
-            "esperandoProfesor"
-        )
+        .getElementById("esperandoProfesor")
         .classList.add("hidden");
 
 
     document
-        .getElementById(
-            "quizProfesor"
-        )
+        .getElementById("quizProfesor")
         .classList.remove("hidden");
 
 
-    mostrarPreguntaProfesor(
-        1
-    );
+    mostrarPreguntaProfesor(1);
 
 
     iniciarTemporizadorGlobal();
@@ -1444,6 +584,9 @@ async function siguientePregunta(){
         return;
 
 
+    detenerTemporizadorPregunta();
+
+
     const siguiente =
         Number(
             partidaActual.pregunta_actual
@@ -1491,12 +634,10 @@ async function siguientePregunta(){
         );
 
         return;
-
     }
 
 
-    partidaActual =
-        data;
+    partidaActual = data;
 
 
     mostrarPreguntaProfesor(
@@ -1507,7 +648,7 @@ async function siguientePregunta(){
 
 
 /* =====================================================
-   UNIRSE PARTIDA
+   UNIRSE A PARTIDA
 ===================================================== */
 
 async function unirsePartida(){
@@ -1531,8 +672,7 @@ async function unirsePartida(){
 
 
     const mensaje =
-        document
-        .getElementById(
+        document.getElementById(
             "mensajeEstudiante"
         );
 
@@ -1557,7 +697,7 @@ async function unirsePartida(){
         "mensaje";
 
 
-    const { data:partida, error } =
+    const { data: partida, error } =
         await supabaseClient
         .from("partidas")
         .select("*")
@@ -1615,7 +755,7 @@ async function unirsePartida(){
     }
 
 
-    const { data:jugador, error:errorJugador } =
+    const { data: jugador, error: errorJugador } =
         await supabaseClient
         .from("jugadores")
         .insert({
@@ -1626,9 +766,9 @@ async function unirsePartida(){
             nombre:
                 nombre,
 
-            puntos:0,
+            puntos: 0,
 
-            correctas:0
+            correctas: 0
 
         })
         .select()
@@ -1652,12 +792,6 @@ async function unirsePartida(){
         return;
 
     }
-
-
-    console.log(
-        "Jugador creado:",
-        jugador
-    );
 
 
     partidaActual =
@@ -1688,7 +822,7 @@ async function unirsePartida(){
 
 
 /* =====================================================
-   ACTUALIZAR ESTADO PARTIDA
+   ACTUALIZAR ESTADO DEL ESTUDIANTE
 ===================================================== */
 
 function iniciarActualizacionPartidaEstudiante(){
@@ -1707,11 +841,8 @@ function iniciarActualizacionPartidaEstudiante(){
 
     intervaloEstadoPartida =
         setInterval(
-
             comprobarEstadoEstudiante,
-
             1000
-
         );
 
 }
@@ -1771,7 +902,7 @@ async function comprobarEstadoEstudiante(){
 
 
     /* ====================================
-        PARTIDA JUGANDO
+       JUGANDO
     ==================================== */
 
     if(
@@ -1792,11 +923,6 @@ async function comprobarEstadoEstudiante(){
             )
             .classList.remove("hidden");
 
-
-        /*
-         * Si acaba de comenzar
-         * o cambió la pregunta.
-         */
 
         if(
             estadoAnterior !== "jugando" ||
@@ -1823,7 +949,7 @@ async function comprobarEstadoEstudiante(){
 
 
     /* ====================================
-        PARTIDA FINALIZADA
+       FINALIZADA
     ==================================== */
 
     if(
@@ -1843,6 +969,9 @@ async function comprobarEstadoEstudiante(){
         }
 
 
+        await actualizarJugadorActual();
+
+
         mostrarFinalEstudiante();
 
     }
@@ -1856,40 +985,124 @@ async function comprobarEstadoEstudiante(){
 
 async function cargarPreguntaEstudiante(numero){
 
-    const indice = numero - 1;
-    respuestaEnviada = false;
-    preguntaMostrada = preguntas[indice];
+    const indice =
+        numero - 1;
 
-    if(!preguntaMostrada) return;
 
-    document.getElementById("numeroPregunta").textContent =
-        "Pregunta " + numero + " de " + preguntas.length;
+    if(indice < 0)
+        return;
 
-    document.getElementById("preguntaEstudiante").textContent =
-        preguntaMostrada.pregunta;
 
-    // Asignar textos a los botones si existen en las columnas de la BD
-    const btnA = document.querySelector(".opcion-a");
-    const btnB = document.querySelector(".opcion-b");
-    const btnC = document.querySelector(".opcion-c");
-    const btnD = document.querySelector(".opcion-d");
+    if(!preguntas.length){
 
-    btnA.textContent = preguntaMostrada.opcion_a ? "A) " + preguntaMostrada.opcion_a : "A";
-    btnB.textContent = preguntaMostrada.opcion_b ? "B) " + preguntaMostrada.opcion_b : "B";
-    btnC.textContent = preguntaMostrada.opcion_c ? "C) " + preguntaMostrada.opcion_c : "C";
-    btnD.textContent = preguntaMostrada.opcion_d ? "D) " + preguntaMostrada.opcion_d : "D";
+        await cargarPreguntas();
 
-    // Habilitar los botones de respuesta
-    const botones = document.querySelectorAll(".opcion");
-    botones.forEach(btn => {
-        btn.disabled = false;
-    });
-
-    const res = document.getElementById("resultadoRespuesta");
-    if(res){
-        res.textContent = "";
-        res.className = "resultado";
     }
+
+
+    const pregunta =
+        preguntas[indice];
+
+
+    if(!pregunta){
+
+        console.error(
+            "No se encontró pregunta:",
+            numero
+        );
+
+        return;
+
+    }
+
+
+    if(
+        preguntaMostrada === numero &&
+        !respuestaEnviada
+    ){
+
+        return;
+
+    }
+
+
+    preguntaMostrada =
+        numero;
+
+
+    respuestaEnviada =
+        false;
+
+
+    document
+        .getElementById(
+            "numeroPregunta"
+        )
+        .textContent =
+            "Pregunta " +
+            numero +
+            " de " +
+            preguntas.length;
+
+
+    document
+        .getElementById(
+            "preguntaEstudiante"
+        )
+        .textContent =
+            pregunta.pregunta;
+
+
+    const resultado =
+        document.getElementById(
+            "resultadoRespuesta"
+        );
+
+
+    resultado.textContent =
+        "";
+
+
+    resultado.className =
+        "resultado";
+
+
+    const botones =
+        document.querySelectorAll(
+            ".opcion"
+        );
+
+
+    botones.forEach(
+        boton =>
+            boton.disabled = false
+    );
+
+
+    if(botones.length >= 4){
+
+        botones[0].textContent =
+            "A. " +
+            (pregunta.opcion_a ||
+             "Opción A");
+
+        botones[1].textContent =
+            "B. " +
+            (pregunta.opcion_b ||
+             "Opción B");
+
+        botones[2].textContent =
+            "C. " +
+            (pregunta.opcion_c ||
+             "Opción C");
+
+        botones[3].textContent =
+            "D. " +
+            (pregunta.opcion_d ||
+             "Opción D");
+
+    }
+
 
     iniciarTemporizadorPregunta();
 
@@ -1897,268 +1110,708 @@ async function cargarPreguntaEstudiante(numero){
 
 
 /* =====================================================
-   RESPONDER PREGUNTA (ESTUDIANTE)
+   RESPONDER
 ===================================================== */
 
-async function responder(opcionSeleccionada){
+async function responder(opcion){
 
-    if(respuestaEnviada || !jugadorActual || !preguntaMostrada) return;
+    if(
+        respuestaEnviada ||
+        !partidaActual ||
+        !jugadorActual
+    ){
 
-    respuestaEnviada = true;
-
-    // Deshabilitar botones inmediatamente para evitar múltiples clics
-    const botones = document.querySelectorAll(".opcion");
-    botones.forEach(btn => btn.disabled = true);
-
-    const transcurrido = Math.floor((Date.now() - inicioPregunta) / 1000);
-    const tiempoRestante = Math.max(0, DURACION_PREGUNTA - transcurrido);
-
-    // Obtener la opción correcta según la columna en Supabase
-    const correcta = (
-        preguntaMostrada.respuesta_correcta ||
-        preguntaMostrada.opcion_correcta ||
-        preguntaMostrada.correcta ||
-        ""
-    ).toString().trim().toUpperCase();
-
-    const esCorrecta = opcionSeleccionada.toUpperCase() === correcta ||
-        (correcta.length > 1 && preguntaMostrada["opcion_" + opcionSeleccionada.toLowerCase()] === correcta);
-
-    let puntosObtenidos = 0;
-    const res = document.getElementById("resultadoRespuesta");
-
-    if(esCorrecta){
-
-        // Cálculo de puntos: base 500 + hasta 500 extra por velocidad
-        const bonificacionVelocidad = Math.round((tiempoRestante / DURACION_PREGUNTA) * 500);
-        puntosObtenidos = 500 + bonificacionVelocidad;
-
-        jugadorActual.puntos = (jugadorActual.puntos || 0) + puntosObtenidos;
-        jugadorActual.correctas = (jugadorActual.correctas || 0) + 1;
-
-        if(res){
-            res.textContent = "¡Correcto! 🎉 (+" + puntosObtenidos + " pts)";
-            res.className = "resultado exito";
-        }
-
-    } else {
-
-        if(res){
-            res.textContent = "Incorrecto ❌";
-            res.className = "resultado error";
-        }
+        return;
 
     }
 
-    // Actualizar puntaje en Supabase
-    try {
+
+    if(
+        partidaActual.estado !==
+        "jugando"
+    ){
+
+        return;
+
+    }
+
+
+    respuestaEnviada =
+        true;
+
+
+    const botones =
+        document.querySelectorAll(
+            ".opcion"
+        );
+
+
+    botones.forEach(
+        boton =>
+            boton.disabled = true
+    );
+
+
+    const indice =
+        Number(
+            partidaActual.pregunta_actual
+        ) - 1;
+
+
+    const pregunta =
+        preguntas[indice];
+
+
+    if(!pregunta)
+        return;
+
+
+    const tiempoUsado =
+        Math.min(
+            (Date.now() - inicioPregunta) / 1000,
+            DURACION_PREGUNTA
+        );
+
+
+    /*
+     * IMPORTANTE:
+     * El SQL usa respuesta_correcta,
+     * NO "correcta".
+     */
+
+    const respuestaCorrecta =
+        String(
+            pregunta.respuesta_correcta
+        ).toUpperCase();
+
+
+    const opcionElegida =
+        String(opcion).toUpperCase();
+
+
+    const esCorrecta =
+        opcionElegida ===
+        respuestaCorrecta;
+
+
+    let puntosGanados = 0;
+
+
+    if(esCorrecta){
+
+        puntosGanados =
+            Math.max(
+                200,
+                Math.round(
+                    1000 *
+                    (
+                        1 -
+                        (
+                            tiempoUsado /
+                            DURACION_PREGUNTA
+                        )
+                    )
+                )
+            );
+
+    }
+
+
+    const nuevosPuntos =
+        Number(
+            jugadorActual.puntos || 0
+        ) +
+        puntosGanados;
+
+
+    const nuevasCorrectas =
+        Number(
+            jugadorActual.correctas || 0
+        ) +
+        (
+            esCorrecta
+            ? 1
+            : 0
+        );
+
+
+    /*
+     * GUARDAR RESPUESTA
+     */
+
+    const { error: errorRespuesta } =
         await supabaseClient
-            .from("jugadores")
-            .update({
-                puntos: jugadorActual.puntos,
-                correctas: jugadorActual.correctas
-            })
-            .eq("id", jugadorActual.id);
-    } catch(err){
-        console.error("Error guardando puntaje:", err);
+        .from("respuestas")
+        .insert({
+
+            partida_id:
+                partidaActual.id,
+
+            jugador_id:
+                jugadorActual.id,
+
+            pregunta_id:
+                pregunta.id,
+
+            respuesta:
+                opcionElegida,
+
+            correcta:
+                esCorrecta,
+
+            puntos:
+                puntosGanados
+
+        });
+
+
+    if(errorRespuesta){
+
+        console.error(
+            "Error guardando respuesta:",
+            errorRespuesta
+        );
+
+    }
+
+
+    /*
+     * ACTUALIZAR JUGADOR
+     */
+
+    const { data, error } =
+        await supabaseClient
+        .from("jugadores")
+        .update({
+
+            puntos:
+                nuevosPuntos,
+
+            correctas:
+                nuevasCorrectas
+
+        })
+        .eq(
+            "id",
+            jugadorActual.id
+        )
+        .select()
+        .single();
+
+
+    if(!error && data){
+
+        jugadorActual =
+            data;
+
+    }
+    else if(error){
+
+        console.error(
+            "Error actualizando jugador:",
+            error
+        );
+
+    }
+
+
+    /*
+     * MOSTRAR RESULTADO
+     */
+
+    const divResultado =
+        document.getElementById(
+            "resultadoRespuesta"
+        );
+
+
+    if(esCorrecta){
+
+        divResultado.textContent =
+            `¡Correcto! 🎉 +${puntosGanados} pts`;
+
+        divResultado.className =
+            "resultado exito";
+
+    }
+    else{
+
+        divResultado.textContent =
+            `Incorrecto ❌ (Respuesta: ${respuestaCorrecta})`;
+
+        divResultado.className =
+            "resultado error";
+
     }
 
 }
 
 
 /* =====================================================
-   TEMPORIZADOR GLOBAL DE LA PARTIDA
+   ACTUALIZAR JUGADOR ACTUAL
+===================================================== */
+
+async function actualizarJugadorActual(){
+
+    if(!jugadorActual)
+        return;
+
+
+    const { data, error } =
+        await supabaseClient
+        .from("jugadores")
+        .select("*")
+        .eq(
+            "id",
+            jugadorActual.id
+        )
+        .single();
+
+
+    if(!error && data){
+
+        jugadorActual =
+            data;
+
+    }
+
+}
+
+
+/* =====================================================
+   TEMPORIZADOR GLOBAL
 ===================================================== */
 
 function iniciarTemporizadorGlobal(){
 
-    detenerTemporizadorGlobal();
+    if(intervaloGlobal){
 
-    const inicioGlobal = partidaActual && partidaActual.tiempo_inicio
-        ? new Date(partidaActual.tiempo_inicio).getTime()
+        clearInterval(
+            intervaloGlobal
+        );
+
+    }
+
+
+    const duracion =
+        Number(
+            partidaActual.duracion_segundos ||
+            DURACION_PARTIDA
+        );
+
+
+    const inicio =
+        partidaActual.tiempo_inicio
+        ? new Date(
+            partidaActual.tiempo_inicio
+          ).getTime()
         : Date.now();
+
 
     function actualizarGlobal(){
 
-        const transcurrido = Math.floor((Date.now() - inicioGlobal) / 1000);
-        const restante = Math.max(0, DURACION_PARTIDA - transcurrido);
+        const transcurrido =
+            Math.floor(
+                (
+                    Date.now() -
+                    inicio
+                ) / 1000
+            );
 
-        const minutos = String(Math.floor(restante / 60)).padStart(2, "0");
-        const segundos = String(restante % 60).padStart(2, "0");
-        const texto = "⏳ " + minutos + ":" + segundos;
 
-        const tempProfesor = document.getElementById("temporizadorProfesor");
-        const tempEstudiante = document.getElementById("temporizadorEstudiante");
+        const restante =
+            duracion -
+            transcurrido;
 
-        if(tempProfesor) tempProfesor.textContent = texto;
-        if(tempEstudiante) tempEstudiante.textContent = texto;
 
         if(restante <= 0){
-            detenerTemporizadorGlobal();
-            if(partidaActual && partidaActual.estado === "jugando"){
+
+            clearInterval(
+                intervaloGlobal
+            );
+
+            intervaloGlobal =
+                null;
+
+
+            const elemProf =
+                document.getElementById(
+                    "temporizadorProfesor"
+                );
+
+
+            const elemEst =
+                document.getElementById(
+                    "temporizadorEstudiante"
+                );
+
+
+            if(elemProf)
+                elemProf.textContent =
+                    "⏳ 00:00";
+
+
+            if(elemEst)
+                elemEst.textContent =
+                    "⏳ 00:00";
+
+
+            /*
+             * Solo el profesor finaliza
+             * la partida.
+             */
+
+            if(!jugadorActual){
+
                 finalizarPartida();
+
             }
+
+
+            return;
+
         }
 
+
+        const mins =
+            Math.floor(
+                restante / 60
+            )
+            .toString()
+            .padStart(2, "0");
+
+
+        const segs =
+            (restante % 60)
+            .toString()
+            .padStart(2, "0");
+
+
+        const texto =
+            `⏳ ${mins}:${segs}`;
+
+
+        const elemProf =
+            document.getElementById(
+                "temporizadorProfesor"
+            );
+
+
+        const elemEst =
+            document.getElementById(
+                "temporizadorEstudiante"
+            );
+
+
+        if(elemProf)
+            elemProf.textContent =
+                texto;
+
+
+        if(elemEst)
+            elemEst.textContent =
+                texto;
+
     }
+
 
     actualizarGlobal();
-    intervaloGlobal = setInterval(actualizarGlobal, 1000);
-
-}
 
 
-function detenerTemporizadorGlobal(){
-
-    if(intervaloGlobal){
-        clearInterval(intervaloGlobal);
-        intervaloGlobal = null;
-    }
+    intervaloGlobal =
+        setInterval(
+            actualizarGlobal,
+            1000
+        );
 
 }
 
 
 /* =====================================================
-   FINALIZAR PARTIDA (PROFESOR)
+   FINALIZAR PARTIDA
 ===================================================== */
 
 async function finalizarPartida(){
 
     detenerTemporizadorPregunta();
-    detenerTemporizadorGlobal();
+
+
+    if(intervaloGlobal){
+
+        clearInterval(
+            intervaloGlobal
+        );
+
+        intervaloGlobal =
+            null;
+
+    }
+
 
     if(intervaloJugadores){
-        clearInterval(intervaloJugadores);
-        intervaloJugadores = null;
+
+        clearInterval(
+            intervaloJugadores
+        );
+
+        intervaloJugadores =
+            null;
+
     }
+
 
     if(partidaActual){
-        await supabaseClient
-            .from("partidas")
-            .update({ estado: "finalizada" })
-            .eq("id", partidaActual.id);
 
-        partidaActual.estado = "finalizada";
+        const { data, error } =
+            await supabaseClient
+            .from("partidas")
+            .update({
+
+                estado:
+                    "finalizada"
+
+            })
+            .eq(
+                "id",
+                partidaActual.id
+            )
+            .select()
+            .single();
+
+
+        if(!error && data){
+
+            partidaActual =
+                data;
+
+        }
+
     }
 
-    document.getElementById("quizProfesor").classList.add("hidden");
-    document.getElementById("esperandoProfesor").classList.add("hidden");
-    document.getElementById("finalProfesor").classList.remove("hidden");
 
-    cargarRankingProfesor();
+    document
+        .getElementById(
+            "quizProfesor"
+        )
+        .classList.add("hidden");
+
+
+    document
+        .getElementById(
+            "finalProfesor"
+        )
+        .classList.remove("hidden");
+
+
+    await cargarRanking(
+        "rankingProfesor"
+    );
 
 }
 
 
 /* =====================================================
-   MOSTRAR FINAL ESTUDIANTE
+   FINAL ESTUDIANTE
 ===================================================== */
 
 async function mostrarFinalEstudiante(){
 
     detenerTemporizadorPregunta();
-    detenerTemporizadorGlobal();
 
-    document.getElementById("quizEstudiante").classList.add("hidden");
-    document.getElementById("esperandoEstudiante").classList.add("hidden");
-    document.getElementById("finalEstudiante").classList.remove("hidden");
 
-    await cargarRankingEstudiante();
+    if(intervaloGlobal){
+
+        clearInterval(
+            intervaloGlobal
+        );
+
+        intervaloGlobal =
+            null;
+
+    }
+
+
+    await actualizarJugadorActual();
+
+
+    document
+        .getElementById(
+            "quizEstudiante"
+        )
+        .classList.add("hidden");
+
+
+    document
+        .getElementById(
+            "esperandoEstudiante"
+        )
+        .classList.add("hidden");
+
+
+    document
+        .getElementById(
+            "finalEstudiante"
+        )
+        .classList.remove("hidden");
+
+
+    if(jugadorActual){
+
+        document
+            .getElementById(
+                "miResultado"
+            )
+            .textContent =
+
+            `Tu puntuación final: ${
+                jugadorActual.puntos || 0
+            } pts (${
+                jugadorActual.correctas || 0
+            } aciertos)`;
+
+    }
+
+
+    await cargarRanking(
+        "rankingEstudiante"
+    );
 
 }
 
 
 /* =====================================================
-   RANKINGS Y ESCAPADO HTML
+   RANKING
 ===================================================== */
 
-async function cargarRankingProfesor(){
+async function cargarRanking(
+    contenedorId
+){
 
-    const rankingDiv = document.getElementById("rankingProfesor");
-    if(!rankingDiv || !partidaActual) return;
+    if(!partidaActual)
+        return;
 
-    const { data: jugadores } = await supabaseClient
+
+    const { data, error } =
+        await supabaseClient
         .from("jugadores")
         .select("*")
-        .eq("partida_id", partidaActual.id)
-        .order("puntos", { ascending: false });
+        .eq(
+            "partida_id",
+            partidaActual.id
+        )
+        .order(
+            "puntos",
+            {
+                ascending: false
+            }
+        );
 
-    renderizarTablaRanking(rankingDiv, jugadores || []);
 
-}
+    if(error){
 
+        console.error(
+            "Error cargando ranking:",
+            error
+        );
 
-async function cargarRankingEstudiante(){
+        return;
 
-    const rankingDiv = document.getElementById("rankingEstudiante");
-    const miResDiv = document.getElementById("miResultado");
-    if(!partidaActual) return;
-
-    const { data: jugadores } = await supabaseClient
-        .from("jugadores")
-        .select("*")
-        .eq("partida_id", partidaActual.id)
-        .order("puntos", { ascending: false });
-
-    const lista = jugadores || [];
-
-    if(jugadorActual && miResDiv){
-        const pos = lista.findIndex(j => j.id === jugadorActual.id) + 1;
-        const datosYo = lista.find(j => j.id === jugadorActual.id) || jugadorActual;
-
-        let medalla = pos === 1 ? "🥇" : pos === 2 ? "🥈" : pos === 3 ? "🥉" : "🎯";
-        miResDiv.innerHTML = medalla + " Posición #" + pos +
-            "<br><small style='font-size:18px; color:#555;'>" +
-            (datosYo.puntos || 0) + " Puntos | " + (datosYo.correctas || 0) + " aciertos</small>";
     }
 
-    if(rankingDiv){
-        renderizarTablaRanking(rankingDiv, lista);
+
+    const contenedor =
+        document.getElementById(
+            contenedorId
+        );
+
+
+    if(!contenedor)
+        return;
+
+
+    contenedor.innerHTML =
+        "";
+
+
+    (data || []).forEach(
+        (j, index) => {
+
+            const item =
+                document.createElement(
+                    "div"
+                );
+
+
+            item.className =
+                "ranking-item";
+
+
+            item.innerHTML = `
+
+                <span class="posicion">
+                    #${index + 1}
+                </span>
+
+                <span class="nombre-ranking">
+                    ${escapeHtml(j.nombre)}
+                </span>
+
+                <span class="puntos-ranking">
+                    ${j.puntos} pts
+                </span>
+
+                <span class="correctas-ranking">
+                    (${j.correctas} aciertos)
+                </span>
+
+            `;
+
+
+            contenedor.appendChild(
+                item
+            );
+
+        }
+    );
+
+}
+
+
+/* =====================================================
+   ESCAPAR HTML
+===================================================== */
+
+function escapeHtml(text){
+
+    if(text === null ||
+       text === undefined){
+
+        return "";
+
     }
 
-}
 
-
-function renderizarTablaRanking(contenedor, jugadores){
-
-    contenedor.innerHTML = "";
-
-    jugadores.forEach((j, index) => {
-        const item = document.createElement("div");
-        item.className = "ranking-item";
-
-        let posIcono = "#" + (index + 1);
-        if(index === 0) posIcono = "🥇";
-        if(index === 1) posIcono = "🥈";
-        if(index === 2) posIcono = "🥉";
-
-        item.innerHTML = `
-            <div class="posicion">${posIcono}</div>
-            <div class="nombre-ranking">${escapeHtml(j.nombre)}</div>
-            <div class="puntos-ranking">⚡ ${j.puntos || 0} pts</div>
-            <div class="correctas-ranking">✅ ${j.correctas || 0}</div>
-        `;
-
-        contenedor.appendChild(item);
-    });
+    return String(text)
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+        .replace(
+            /</g,
+            "&lt;"
+        )
+        .replace(
+            />/g,
+            "&gt;"
+        )
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+        .replace(
+            /'/g,
+            "&#039;"
+        );
 
 }
-
-
-function escapeHtml(str){
-
-    if(!str) return "";
-    return String(str)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-
-}
-
-</script>
-
-</body>
-
-</html>
+```
