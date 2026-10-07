@@ -1,281 +1,2164 @@
-console.log("Jugador creado:", jugador);
+<!DOCTYPE html>
+<html lang="es">
 
-    jugadorActual = jugador;
-    partidaActual = partida;
+<head>
 
-    document.getElementById("unirsePanel").classList.add("hidden");
-    document.getElementById("esperandoEstudiante").classList.remove("hidden");
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    await cargarPreguntas();
-    iniciarMonitoreoPartidaEstudiante();
+<title>Quiz Interactivo</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+
+/* ================================
+   GENERAL
+================================ */
+
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    font-family:Arial,Helvetica,sans-serif;
+    background:linear-gradient(135deg,#667eea,#764ba2);
+    min-height:100vh;
+    color:#222;
+}
+
+.container{
+    width:100%;
+    max-width:900px;
+    margin:auto;
+    padding:20px;
+}
+
+.card{
+    background:white;
+    border-radius:20px;
+    padding:30px;
+    box-shadow:0 10px 30px rgba(0,0,0,.2);
+}
+
+.hidden{
+    display:none !important;
+}
+
+h1,h2,h3{
+    text-align:center;
+}
+
+
+/* ================================
+   INICIO
+================================ */
+
+#inicio{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.logo{
+    text-align:center;
+    font-size:45px;
+    font-weight:bold;
+    color:#667eea;
+    margin-bottom:10px;
+}
+
+.subtitulo{
+    text-align:center;
+    color:#777;
+    margin-bottom:30px;
+}
+
+.roles{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:20px;
+}
+
+
+/* ================================
+   BOTONES
+================================ */
+
+button{
+    border:none;
+    border-radius:12px;
+    padding:15px 20px;
+    font-size:17px;
+    font-weight:bold;
+    cursor:pointer;
+    transition:.2s;
+}
+
+button:hover{
+    transform:translateY(-2px);
+}
+
+button:disabled{
+    opacity:.55;
+    cursor:not-allowed;
+    transform:none;
+}
+
+.btn-profesor{
+    background:#667eea;
+    color:white;
+}
+
+.btn-estudiante{
+    background:#764ba2;
+    color:white;
+}
+
+.btn{
+    width:100%;
+    margin-top:10px;
+    background:#667eea;
+    color:white;
+}
+
+.btn-danger{
+    background:#e74c3c;
+    color:white;
+}
+
+
+/* ================================
+   INPUTS
+================================ */
+
+input{
+    width:100%;
+    padding:15px;
+    border:2px solid #ddd;
+    border-radius:10px;
+    font-size:17px;
+    margin:8px 0;
+    outline:none;
+}
+
+input:focus{
+    border-color:#667eea;
+}
+
+
+/* ================================
+   HEADER
+================================ */
+
+.header-game{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    margin-bottom:20px;
+    flex-wrap:wrap;
+}
+
+.codigo{
+    background:#667eea;
+    color:white;
+    padding:10px 18px;
+    border-radius:10px;
+    font-weight:bold;
+    font-size:20px;
+}
+
+.temporizador-global{
+    background:#222;
+    color:white;
+    padding:10px 18px;
+    border-radius:10px;
+    font-weight:bold;
+    font-size:20px;
+}
+
+.temporizador-pregunta{
+    background:#f39c12;
+    color:white;
+    padding:10px 18px;
+    border-radius:10px;
+    font-weight:bold;
+    font-size:20px;
+    text-align:center;
+    margin:15px auto;
+    max-width:240px;
+}
+
+
+/* ================================
+   JUGADORES
+================================ */
+
+.lista-jugadores{
+    display:grid;
+    grid-template-columns:
+        repeat(auto-fit,minmax(150px,1fr));
+    gap:10px;
+    margin:20px 0;
+}
+
+.jugador{
+    background:#f3f4ff;
+    padding:15px;
+    border-radius:10px;
+    text-align:center;
+    font-weight:bold;
+}
+
+
+/* ================================
+   PREGUNTA
+================================ */
+
+.pregunta{
+    font-size:28px;
+    font-weight:bold;
+    text-align:center;
+    margin:30px 0;
+}
+
+.opciones{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:15px;
+}
+
+.opcion{
+    min-height:80px;
+    color:white;
+    font-size:20px;
+}
+
+.opcion-a{
+    background:#e74c3c;
+}
+
+.opcion-b{
+    background:#3498db;
+}
+
+.opcion-c{
+    background:#f1c40f;
+}
+
+.opcion-d{
+    background:#2ecc71;
+}
+
+
+/* ================================
+   RESULTADOS
+================================ */
+
+.resultado{
+    text-align:center;
+    font-size:24px;
+    font-weight:bold;
+    margin:20px 0;
+}
+
+.ranking{
+    margin-top:25px;
+}
+
+.ranking-item{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:15px;
+    margin:8px 0;
+    background:#f5f5f5;
+    border-radius:12px;
+}
+
+.posicion{
+    font-size:22px;
+    font-weight:bold;
+    width:50px;
+}
+
+.nombre-ranking{
+    flex:1;
+    font-weight:bold;
+}
+
+.puntos-ranking{
+    font-weight:bold;
+    color:#667eea;
+}
+
+.correctas-ranking{
+    margin-left:15px;
+    color:#555;
+}
+
+
+/* ================================
+   MENSAJES
+================================ */
+
+.mensaje{
+    text-align:center;
+    margin:15px 0;
+    font-weight:bold;
+}
+
+.exito{
+    color:#27ae60;
+}
+
+.error{
+    color:#e74c3c;
+}
+
+
+/* ================================
+   INFORMACIÓN
+================================ */
+
+.info-puntuacion{
+    background:#f5f6ff;
+    padding:15px;
+    border-radius:12px;
+    margin-top:20px;
+    text-align:center;
+    color:#555;
+}
+
+.estado-conexion{
+    text-align:center;
+    margin-top:15px;
+    color:#777;
+    font-size:14px;
+}
+
+
+/* ================================
+   RESPONSIVE
+================================ */
+
+@media(max-width:600px){
+
+    .roles{
+        grid-template-columns:1fr;
+    }
+
+    .opciones{
+        grid-template-columns:1fr;
+    }
+
+    .pregunta{
+        font-size:22px;
+    }
+
+    .header-game{
+        justify-content:center;
+    }
+
+    .card{
+        padding:20px;
+    }
+
+    .ranking-item{
+        flex-wrap:wrap;
+        gap:5px;
+    }
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<!-- =====================================================
+     INICIO
+===================================================== -->
+
+<div id="inicio">
+
+    <div class="container">
+
+        <div class="card">
+
+            <div class="logo">
+                ⚡ QUIZ
+            </div>
+
+            <div class="subtitulo">
+                Quiz interactivo en tiempo real
+            </div>
+
+            <div class="roles">
+
+                <button
+                    class="btn-profesor"
+                    onclick="mostrarProfesor()">
+
+                    👨‍🏫 Profesor
+
+                </button>
+
+                <button
+                    class="btn-estudiante"
+                    onclick="mostrarEstudiante()">
+
+                    👨‍🎓 Estudiante
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     PROFESOR
+===================================================== -->
+
+<div id="profesor" class="hidden">
+
+    <div class="container">
+
+        <div class="card">
+
+            <div class="header-game">
+
+                <h2>
+                    👨‍🏫 Panel del profesor
+                </h2>
+
+                <div
+                    id="temporizadorProfesor"
+                    class="temporizador-global">
+
+                    ⏳ 05:20
+
+                </div>
+
+            </div>
+
+
+            <!-- CREAR PARTIDA -->
+
+            <div id="crearPartidaPanel">
+
+                <button
+                    class="btn"
+                    onclick="crearPartida()">
+
+                    🎮 Crear nueva partida
+
+                </button>
+
+            </div>
+
+
+            <!-- PARTIDA -->
+
+            <div
+                id="partidaProfesor"
+                class="hidden">
+
+
+                <div
+                    style="
+                    text-align:center;
+                    margin:20px;
+                    ">
+
+                    <div>
+                        Código de partida
+                    </div>
+
+                    <div
+                        id="codigoPartida"
+                        class="codigo"
+                        style="
+                        display:inline-block;
+                        margin-top:10px;
+                        ">
+
+                        ------
+
+                    </div>
+
+                </div>
+
+
+                <h3>
+                    👥 Jugadores
+                </h3>
+
+
+                <div
+                    id="listaJugadores"
+                    class="lista-jugadores">
+
+                </div>
+
+
+                <div
+                    id="contadorJugadores"
+                    style="
+                    text-align:center;
+                    color:#777;
+                    margin-bottom:15px;
+                    ">
+
+                    0 jugadores
+
+                </div>
+
+
+                <!-- ESPERANDO -->
+
+                <div id="esperandoProfesor">
+
+                    <p
+                        style="
+                        text-align:center;
+                        color:#666;
+                        ">
+
+                        Los estudiantes pueden
+                        ingresar con el código.
+
+                    </p>
+
+                    <button
+                        class="btn"
+                        onclick="iniciarPartida()">
+
+                        ▶️ Iniciar quiz
+
+                    </button>
+
+                </div>
+
+
+                <!-- QUIZ -->
+
+                <div
+                    id="quizProfesor"
+                    class="hidden">
+
+                    <div
+                        id="numeroPreguntaProfesor"
+                        style="
+                        text-align:center;
+                        font-weight:bold;
+                        ">
+
+                    </div>
+
+                    <div
+                        id="temporizadorPreguntaProfesor"
+                        class="temporizador-pregunta">
+
+                        ⏱️ 35
+
+                    </div>
+
+
+                    <div
+                        id="preguntaProfesor"
+                        class="pregunta">
+
+                    </div>
+
+
+                    <button
+                        class="btn"
+                        onclick="siguientePregunta()">
+
+                        ➡️ Siguiente pregunta
+
+                    </button>
+
+                </div>
+
+
+                <!-- FINAL -->
+
+                <div
+                    id="finalProfesor"
+                    class="hidden">
+
+                    <h2>
+                        🏆 Quiz finalizado
+                    </h2>
+
+                    <div
+                        id="rankingProfesor"
+                        class="ranking">
+
+                    </div>
+
+                </div>
+
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     ESTUDIANTE
+===================================================== -->
+
+<div id="estudiante" class="hidden">
+
+    <div class="container">
+
+        <div class="card">
+
+
+            <div class="header-game">
+
+                <h2>
+                    👨‍🎓 Estudiante
+                </h2>
+
+                <div
+                    id="temporizadorEstudiante"
+                    class="temporizador-global">
+
+                    ⏳ 05:20
+
+                </div>
+
+            </div>
+
+
+            <!-- UNIRSE -->
+
+            <div id="unirsePanel">
+
+                <input
+                    id="codigoInput"
+                    type="text"
+                    maxlength="6"
+                    placeholder="Código de partida">
+
+
+                <input
+                    id="nombreInput"
+                    type="text"
+                    placeholder="Tu nombre">
+
+
+                <button
+                    class="btn"
+                    onclick="unirsePartida()">
+
+                    🚀 Unirse
+
+                </button>
+
+
+                <div
+                    id="mensajeEstudiante"
+                    class="mensaje">
+
+                </div>
+
+            </div>
+
+
+            <!-- ESPERANDO -->
+
+            <div
+                id="esperandoEstudiante"
+                class="hidden">
+
+                <h2>
+                    ⏳ Esperando...
+                </h2>
+
+                <p
+                    style="text-align:center">
+
+                    Te has unido correctamente.
+
+                </p>
+
+                <p
+                    style="text-align:center">
+
+                    Espera a que el profesor
+                    inicie el quiz.
+
+                </p>
+
+                <div
+                    class="estado-conexion">
+
+                    🟢 Conectado
+
+                </div>
+
+            </div>
+
+
+            <!-- QUIZ -->
+
+            <div
+                id="quizEstudiante"
+                class="hidden">
+
+
+                <div
+                    id="numeroPregunta"
+                    style="
+                    text-align:center;
+                    font-weight:bold;
+                    ">
+
+                </div>
+
+
+                <div
+                    id="temporizadorPregunta"
+                    class="temporizador-pregunta">
+
+                    ⏱️ 35
+
+                </div>
+
+
+                <div
+                    id="preguntaEstudiante"
+                    class="pregunta">
+
+                </div>
+
+
+                <div class="opciones">
+
+                    <button
+                        class="opcion opcion-a"
+                        onclick="responder('A')">
+
+                        A
+
+                    </button>
+
+
+                    <button
+                        class="opcion opcion-b"
+                        onclick="responder('B')">
+
+                        B
+
+                    </button>
+
+
+                    <button
+                        class="opcion opcion-c"
+                        onclick="responder('C')">
+
+                        C
+
+                    </button>
+
+
+                    <button
+                        class="opcion opcion-d"
+                        onclick="responder('D')">
+
+                        D
+
+                    </button>
+
+                </div>
+
+
+                <div
+                    id="resultadoRespuesta"
+                    class="resultado">
+
+                </div>
+
+
+                <div
+                    class="info-puntuacion">
+
+                    ⚡ Respuesta correcta =
+                    hasta <strong>1000 puntos</strong>
+
+                    <br><br>
+
+                    La rapidez determina
+                    cuántos puntos recibes.
+
+                </div>
+
+            </div>
+
+
+            <!-- FINAL -->
+
+            <div
+                id="finalEstudiante"
+                class="hidden">
+
+                <h2>
+                    🏆 Resultado final
+                </h2>
+
+
+                <div
+                    id="miResultado"
+                    class="resultado">
+
+                </div>
+
+
+                <div
+                    id="rankingEstudiante"
+                    class="ranking">
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<script>
+
+
+/* =====================================================
+   SUPABASE
+===================================================== */
+
+const SUPABASE_URL =
+"https://ohmtgkmbrxwtalyamdcg.supabase.co";
+
+const SUPABASE_KEY =
+"sb_publishable_ec57o1PkClVIioHISyei8A_v_Qj619r";
+
+
+const supabaseClient =
+supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+);
+
+
+/* =====================================================
+   CONFIGURACIÓN DEL JUEGO
+===================================================== */
+
+const DURACION_PREGUNTA = 35; // 35 segundos para que respondan los estudiantes
+
+const DURACION_PARTIDA = 320; // 320 segundos de duración global total
+
+
+/* =====================================================
+   VARIABLES
+===================================================== */
+
+let partidaActual = null;
+
+let jugadorActual = null;
+
+let preguntas = [];
+
+let inicioPregunta = null;
+
+let intervaloPregunta = null;
+
+let intervaloGlobal = null;
+
+let intervaloJugadores = null;
+
+let intervaloEstadoPartida = null;
+
+let respuestaEnviada = false;
+
+let preguntaMostrada = null;
+
+
+/* =====================================================
+   CAMBIAR A PROFESOR
+===================================================== */
+
+function mostrarProfesor(){
+
+    document
+        .getElementById("inicio")
+        .classList.add("hidden");
+
+    document
+        .getElementById("profesor")
+        .classList.remove("hidden");
+
 }
 
 
 /* =====================================================
-   FUNCIONES AUXILIARES
+   CAMBIAR A ESTUDIANTE
 ===================================================== */
 
-function escapeHtml(str) {
-    if (!str) return "";
+function mostrarEstudiante(){
+
+    document
+        .getElementById("inicio")
+        .classList.add("hidden");
+
+    document
+        .getElementById("estudiante")
+        .classList.remove("hidden");
+
+}
+
+
+/* =====================================================
+   CREAR PARTIDA
+===================================================== */
+
+async function crearPartida(){
+
+    console.log(
+        "Creando partida..."
+    );
+
+
+    const codigo =
+        Math.floor(
+            100000 +
+            Math.random() * 900000
+        ).toString();
+
+
+    const { data, error } =
+        await supabaseClient
+        .from("partidas")
+        .insert({
+
+            codigo:codigo,
+
+            estado:"esperando",
+
+            pregunta_actual:0,
+
+            duracion_segundos:
+                DURACION_PARTIDA
+
+        })
+        .select()
+        .single();
+
+
+    if(error){
+
+        console.error(
+            "Error creando partida:",
+            error
+        );
+
+        alert(
+            "Error creando la partida:\n\n" +
+            error.message
+        );
+
+        return;
+
+    }
+
+
+    console.log(
+        "Partida creada:",
+        data
+    );
+
+
+    partidaActual = data;
+
+
+    document
+        .getElementById(
+            "crearPartidaPanel"
+        )
+        .classList.add("hidden");
+
+
+    document
+        .getElementById(
+            "partidaProfesor"
+        )
+        .classList.remove("hidden");
+
+
+    document
+        .getElementById(
+            "codigoPartida"
+        )
+        .textContent =
+            codigo;
+
+
+    await cargarPreguntas();
+
+
+    iniciarActualizacionJugadores();
+
+
+}
+
+
+/* =====================================================
+   CARGAR PREGUNTAS
+===================================================== */
+
+async function cargarPreguntas(){
+
+    const { data, error } =
+        await supabaseClient
+        .from("preguntas")
+        .select("*")
+        .order("id");
+
+
+    if(error){
+
+        console.error(
+            "Error cargando preguntas:",
+            error
+        );
+
+        alert(
+            "Error cargando preguntas:\n\n" +
+            error.message
+        );
+
+        return;
+
+    }
+
+
+    preguntas =
+        data || [];
+
+
+    console.log(
+        "Preguntas:",
+        preguntas
+    );
+
+}
+
+
+/* =====================================================
+   ACTUALIZACIÓN DE JUGADORES
+===================================================== */
+
+function iniciarActualizacionJugadores(){
+
+    cargarJugadores();
+
+
+    if(intervaloJugadores){
+
+        clearInterval(
+            intervaloJugadores
+        );
+
+    }
+
+
+    intervaloJugadores =
+        setInterval(
+
+            cargarJugadores,
+
+            1000
+
+        );
+
+}
+
+
+/* =====================================================
+   CARGAR JUGADORES
+===================================================== */
+
+async function cargarJugadores(){
+
+    if(!partidaActual)
+        return;
+
+
+    const { data, error } =
+        await supabaseClient
+        .from("jugadores")
+        .select("*")
+        .eq(
+            "partida_id",
+            partidaActual.id
+        )
+        .order(
+            "puntos",
+            {
+                ascending:false
+            }
+        );
+
+
+    if(error){
+
+        console.error(
+            "Error cargando jugadores:",
+            error
+        );
+
+        return;
+
+    }
+
+
+    const lista =
+        document.getElementById(
+            "listaJugadores"
+        );
+
+
+    const contador =
+        document.getElementById(
+            "contadorJugadores"
+        );
+
+
+    lista.innerHTML = "";
+
+
+    const jugadores =
+        data || [];
+
+
+    contador.textContent =
+        jugadores.length +
+        (
+            jugadores.length === 1
+            ? " jugador"
+            : " jugadores"
+        );
+
+
+    jugadores.forEach(
+        jugador => {
+
+            const div =
+                document.createElement(
+                    "div"
+                );
+
+
+            div.className =
+                "jugador";
+
+
+            div.innerHTML =
+                "👤 " +
+                escapeHtml(
+                    jugador.nombre
+                );
+
+
+            lista.appendChild(
+                div
+            );
+
+        }
+    );
+
+}
+
+
+/* =====================================================
+   TEMPORIZADOR POR PREGUNTA (35s)
+===================================================== */
+
+function iniciarTemporizadorPregunta(){
+
+    detenerTemporizadorPregunta();
+
+    inicioPregunta = Date.now();
+
+    function actualizarTemporizador(){
+
+        const transcurrido = Math.floor((Date.now() - inicioPregunta) / 1000);
+
+        const restante = DURACION_PREGUNTA - transcurrido;
+
+
+        const tempEstudiante = document.getElementById("temporizadorPregunta");
+
+        const tempProfesor = document.getElementById("temporizadorPreguntaProfesor");
+
+
+        if(restante >= 0){
+
+            const texto = "⏱️ " + restante;
+
+            if(tempEstudiante) tempEstudiante.textContent = texto;
+
+            if(tempProfesor) tempProfesor.textContent = texto;
+
+        } else {
+
+            detenerTemporizadorPregunta();
+
+            if(tempEstudiante) tempEstudiante.textContent = "⏱️ 0";
+
+            if(tempProfesor) tempProfesor.textContent = "⌛ ¡Siguiente pregunta!";
+
+
+            // Bloquear botones de estudiante al agotar tiempo
+
+            if(!respuestaEnviada){
+
+                const botones = document.querySelectorAll(".opcion");
+
+                botones.forEach(b => b.disabled = true);
+
+
+                const res = document.getElementById("resultadoRespuesta");
+
+                if(res && res.textContent === ""){
+
+                    res.textContent = "⏰ ¡Tiempo agotado!";
+
+                    res.className = "resultado error";
+
+                }
+
+            }
+
+        }
+
+    }
+
+
+    actualizarTemporizador();
+
+    intervaloPregunta = setInterval(actualizarTemporizador, 1000);
+
+}
+
+
+function detenerTemporizadorPregunta(){
+
+    if(intervaloPregunta){
+
+        clearInterval(intervaloPregunta);
+
+        intervaloPregunta = null;
+
+    }
+
+}
+
+
+/* =====================================================
+   INICIAR PARTIDA
+===================================================== */
+
+async function iniciarPartida(){
+
+    if(!preguntas.length){
+
+        await cargarPreguntas();
+
+    }
+
+
+    if(!preguntas.length){
+
+        alert(
+            "No hay preguntas en la tabla preguntas."
+        );
+
+        return;
+
+    }
+
+
+    const inicio =
+        new Date().toISOString();
+
+
+    const { data, error } =
+        await supabaseClient
+        .from("partidas")
+        .update({
+
+            estado:"jugando",
+
+            pregunta_actual:1,
+
+            tiempo_inicio:inicio,
+
+            duracion_segundos:
+                DURACION_PARTIDA
+
+        })
+        .eq(
+            "id",
+            partidaActual.id
+        )
+        .select()
+        .single();
+
+
+    if(error){
+
+        console.error(
+            "Error iniciando partida:",
+            error
+        );
+
+        alert(
+            "Error iniciando el quiz:\n\n" +
+            error.message
+        );
+
+        return;
+
+    }
+
+
+    partidaActual =
+        data;
+
+
+    document
+        .getElementById(
+            "esperandoProfesor"
+        )
+        .classList.add("hidden");
+
+
+    document
+        .getElementById(
+            "quizProfesor"
+        )
+        .classList.remove("hidden");
+
+
+    mostrarPreguntaProfesor(
+        1
+    );
+
+
+    iniciarTemporizadorGlobal();
+
+}
+
+
+/* =====================================================
+   MOSTRAR PREGUNTA PROFESOR
+===================================================== */
+
+function mostrarPreguntaProfesor(numero){
+
+    const indice =
+        numero - 1;
+
+
+    const pregunta =
+        preguntas[indice];
+
+
+    if(!pregunta)
+        return;
+
+
+    document
+        .getElementById(
+            "numeroPreguntaProfesor"
+        )
+        .textContent =
+            "Pregunta " +
+            numero +
+            " de " +
+            preguntas.length;
+
+
+    document
+        .getElementById(
+            "preguntaProfesor"
+        )
+        .textContent =
+            pregunta.pregunta;
+
+
+    iniciarTemporizadorPregunta();
+
+}
+
+
+/* =====================================================
+   SIGUIENTE PREGUNTA
+===================================================== */
+
+async function siguientePregunta(){
+
+    if(!partidaActual)
+        return;
+
+
+    if(
+        partidaActual.estado !==
+        "jugando"
+    )
+        return;
+
+
+    const siguiente =
+        Number(
+            partidaActual.pregunta_actual
+        ) + 1;
+
+
+    if(
+        siguiente >
+        preguntas.length
+    ){
+
+        await finalizarPartida();
+
+        return;
+
+    }
+
+
+    const { data, error } =
+        await supabaseClient
+        .from("partidas")
+        .update({
+
+            pregunta_actual:
+                siguiente
+
+        })
+        .eq(
+            "id",
+            partidaActual.id
+        )
+        .eq(
+            "estado",
+            "jugando"
+        )
+        .select()
+        .single();
+
+
+    if(error){
+
+        console.error(
+            "Error siguiente pregunta:",
+            error
+        );
+
+        return;
+
+    }
+
+
+    partidaActual =
+        data;
+
+
+    mostrarPreguntaProfesor(
+        siguiente
+    );
+
+}
+
+
+/* =====================================================
+   UNIRSE PARTIDA
+===================================================== */
+
+async function unirsePartida(){
+
+    const codigo =
+        document
+        .getElementById(
+            "codigoInput"
+        )
+        .value
+        .trim();
+
+
+    const nombre =
+        document
+        .getElementById(
+            "nombreInput"
+        )
+        .value
+        .trim();
+
+
+    const mensaje =
+        document
+        .getElementById(
+            "mensajeEstudiante"
+        );
+
+
+    if(!codigo || !nombre){
+
+        mensaje.textContent =
+            "Completa el código y tu nombre.";
+
+        mensaje.className =
+            "mensaje error";
+
+        return;
+
+    }
+
+
+    mensaje.textContent =
+        "Conectando...";
+
+    mensaje.className =
+        "mensaje";
+
+
+    const { data:partida, error } =
+        await supabaseClient
+        .from("partidas")
+        .select("*")
+        .eq(
+            "codigo",
+            codigo
+        )
+        .maybeSingle();
+
+
+    if(error){
+
+        console.error(
+            "Error buscando partida:",
+            error
+        );
+
+        mensaje.textContent =
+            "Error buscando la partida.";
+
+        mensaje.className =
+            "mensaje error";
+
+        return;
+
+    }
+
+
+    if(!partida){
+
+        mensaje.textContent =
+            "No existe esa partida.";
+
+        mensaje.className =
+            "mensaje error";
+
+        return;
+
+    }
+
+
+    if(
+        partida.estado !==
+        "esperando"
+    ){
+
+        mensaje.textContent =
+            "La partida ya comenzó o terminó.";
+
+        mensaje.className =
+            "mensaje error";
+
+        return;
+
+    }
+
+
+    const { data:jugador, error:errorJugador } =
+        await supabaseClient
+        .from("jugadores")
+        .insert({
+
+            partida_id:
+                partida.id,
+
+            nombre:
+                nombre,
+
+            puntos:0,
+
+            correctas:0
+
+        })
+        .select()
+        .single();
+
+
+    if(errorJugador){
+
+        console.error(
+            "Error creando jugador:",
+            errorJugador
+        );
+
+        mensaje.textContent =
+            "No se pudo ingresar:\n" +
+            errorJugador.message;
+
+        mensaje.className =
+            "mensaje error";
+
+        return;
+
+    }
+
+
+    console.log(
+        "Jugador creado:",
+        jugador
+    );
+
+
+    partidaActual =
+        partida;
+
+
+    jugadorActual =
+        jugador;
+
+
+    document
+        .getElementById(
+            "unirsePanel"
+        )
+        .classList.add("hidden");
+
+
+    document
+        .getElementById(
+            "esperandoEstudiante"
+        )
+        .classList.remove("hidden");
+
+
+    iniciarActualizacionPartidaEstudiante();
+
+}
+
+
+/* =====================================================
+   ACTUALIZAR ESTADO PARTIDA
+===================================================== */
+
+function iniciarActualizacionPartidaEstudiante(){
+
+    comprobarEstadoEstudiante();
+
+
+    if(intervaloEstadoPartida){
+
+        clearInterval(
+            intervaloEstadoPartida
+        );
+
+    }
+
+
+    intervaloEstadoPartida =
+        setInterval(
+
+            comprobarEstadoEstudiante,
+
+            1000
+
+        );
+
+}
+
+
+/* =====================================================
+   COMPROBAR ESTADO
+===================================================== */
+
+async function comprobarEstadoEstudiante(){
+
+    if(!partidaActual)
+        return;
+
+
+    const { data, error } =
+        await supabaseClient
+        .from("partidas")
+        .select("*")
+        .eq(
+            "id",
+            partidaActual.id
+        )
+        .single();
+
+
+    if(error){
+
+        console.error(
+            "Error comprobando estado:",
+            error
+        );
+
+        return;
+
+    }
+
+
+    const estadoAnterior =
+        partidaActual.estado;
+
+
+    const preguntaAnterior =
+        Number(
+            partidaActual.pregunta_actual
+        );
+
+
+    partidaActual =
+        data;
+
+
+    const preguntaNueva =
+        Number(
+            partidaActual.pregunta_actual
+        );
+
+
+    /* ====================================
+        PARTIDA JUGANDO
+    ==================================== */
+
+    if(
+        partidaActual.estado ===
+        "jugando"
+    ){
+
+        document
+            .getElementById(
+                "esperandoEstudiante"
+            )
+            .classList.add("hidden");
+
+
+        document
+            .getElementById(
+                "quizEstudiante"
+            )
+            .classList.remove("hidden");
+
+
+        /*
+         * Si acaba de comenzar
+         * o cambió la pregunta.
+         */
+
+        if(
+            estadoAnterior !== "jugando" ||
+            preguntaNueva !== preguntaAnterior
+        ){
+
+            await cargarPreguntas();
+
+
+            cargarPreguntaEstudiante(
+                preguntaNueva
+            );
+
+        }
+
+
+        if(!intervaloGlobal){
+
+            iniciarTemporizadorGlobal();
+
+        }
+
+    }
+
+
+    /* ====================================
+        PARTIDA FINALIZADA
+    ==================================== */
+
+    if(
+        partidaActual.estado ===
+        "finalizada"
+    ){
+
+        if(intervaloEstadoPartida){
+
+            clearInterval(
+                intervaloEstadoPartida
+            );
+
+            intervaloEstadoPartida =
+                null;
+
+        }
+
+
+        mostrarFinalEstudiante();
+
+    }
+
+}
+
+
+/* =====================================================
+   CARGAR PREGUNTA ESTUDIANTE
+===================================================== */
+
+async function cargarPreguntaEstudiante(numero){
+
+    const indice = numero - 1;
+    respuestaEnviada = false;
+    preguntaMostrada = preguntas[indice];
+
+    if(!preguntaMostrada) return;
+
+    document.getElementById("numeroPregunta").textContent =
+        "Pregunta " + numero + " de " + preguntas.length;
+
+    document.getElementById("preguntaEstudiante").textContent =
+        preguntaMostrada.pregunta;
+
+    // Asignar textos a los botones si existen en las columnas de la BD
+    const btnA = document.querySelector(".opcion-a");
+    const btnB = document.querySelector(".opcion-b");
+    const btnC = document.querySelector(".opcion-c");
+    const btnD = document.querySelector(".opcion-d");
+
+    btnA.textContent = preguntaMostrada.opcion_a ? "A) " + preguntaMostrada.opcion_a : "A";
+    btnB.textContent = preguntaMostrada.opcion_b ? "B) " + preguntaMostrada.opcion_b : "B";
+    btnC.textContent = preguntaMostrada.opcion_c ? "C) " + preguntaMostrada.opcion_c : "C";
+    btnD.textContent = preguntaMostrada.opcion_d ? "D) " + preguntaMostrada.opcion_d : "D";
+
+    // Habilitar los botones de respuesta
+    const botones = document.querySelectorAll(".opcion");
+    botones.forEach(btn => {
+        btn.disabled = false;
+    });
+
+    const res = document.getElementById("resultadoRespuesta");
+    if(res){
+        res.textContent = "";
+        res.className = "resultado";
+    }
+
+    iniciarTemporizadorPregunta();
+
+}
+
+
+/* =====================================================
+   RESPONDER PREGUNTA (ESTUDIANTE)
+===================================================== */
+
+async function responder(opcionSeleccionada){
+
+    if(respuestaEnviada || !jugadorActual || !preguntaMostrada) return;
+
+    respuestaEnviada = true;
+
+    // Deshabilitar botones inmediatamente para evitar múltiples clics
+    const botones = document.querySelectorAll(".opcion");
+    botones.forEach(btn => btn.disabled = true);
+
+    const transcurrido = Math.floor((Date.now() - inicioPregunta) / 1000);
+    const tiempoRestante = Math.max(0, DURACION_PREGUNTA - transcurrido);
+
+    // Obtener la opción correcta según la columna en Supabase
+    const correcta = (
+        preguntaMostrada.respuesta_correcta ||
+        preguntaMostrada.opcion_correcta ||
+        preguntaMostrada.correcta ||
+        ""
+    ).toString().trim().toUpperCase();
+
+    const esCorrecta = opcionSeleccionada.toUpperCase() === correcta ||
+        (correcta.length > 1 && preguntaMostrada["opcion_" + opcionSeleccionada.toLowerCase()] === correcta);
+
+    let puntosObtenidos = 0;
+    const res = document.getElementById("resultadoRespuesta");
+
+    if(esCorrecta){
+
+        // Cálculo de puntos: base 500 + hasta 500 extra por velocidad
+        const bonificacionVelocidad = Math.round((tiempoRestante / DURACION_PREGUNTA) * 500);
+        puntosObtenidos = 500 + bonificacionVelocidad;
+
+        jugadorActual.puntos = (jugadorActual.puntos || 0) + puntosObtenidos;
+        jugadorActual.correctas = (jugadorActual.correctas || 0) + 1;
+
+        if(res){
+            res.textContent = "¡Correcto! 🎉 (+" + puntosObtenidos + " pts)";
+            res.className = "resultado exito";
+        }
+
+    } else {
+
+        if(res){
+            res.textContent = "Incorrecto ❌";
+            res.className = "resultado error";
+        }
+
+    }
+
+    // Actualizar puntaje en Supabase
+    try {
+        await supabaseClient
+            .from("jugadores")
+            .update({
+                puntos: jugadorActual.puntos,
+                correctas: jugadorActual.correctas
+            })
+            .eq("id", jugadorActual.id);
+    } catch(err){
+        console.error("Error guardando puntaje:", err);
+    }
+
+}
+
+
+/* =====================================================
+   TEMPORIZADOR GLOBAL DE LA PARTIDA
+===================================================== */
+
+function iniciarTemporizadorGlobal(){
+
+    detenerTemporizadorGlobal();
+
+    const inicioGlobal = partidaActual && partidaActual.tiempo_inicio
+        ? new Date(partidaActual.tiempo_inicio).getTime()
+        : Date.now();
+
+    function actualizarGlobal(){
+
+        const transcurrido = Math.floor((Date.now() - inicioGlobal) / 1000);
+        const restante = Math.max(0, DURACION_PARTIDA - transcurrido);
+
+        const minutos = String(Math.floor(restante / 60)).padStart(2, "0");
+        const segundos = String(restante % 60).padStart(2, "0");
+        const texto = "⏳ " + minutos + ":" + segundos;
+
+        const tempProfesor = document.getElementById("temporizadorProfesor");
+        const tempEstudiante = document.getElementById("temporizadorEstudiante");
+
+        if(tempProfesor) tempProfesor.textContent = texto;
+        if(tempEstudiante) tempEstudiante.textContent = texto;
+
+        if(restante <= 0){
+            detenerTemporizadorGlobal();
+            if(partidaActual && partidaActual.estado === "jugando"){
+                finalizarPartida();
+            }
+        }
+
+    }
+
+    actualizarGlobal();
+    intervaloGlobal = setInterval(actualizarGlobal, 1000);
+
+}
+
+
+function detenerTemporizadorGlobal(){
+
+    if(intervaloGlobal){
+        clearInterval(intervaloGlobal);
+        intervaloGlobal = null;
+    }
+
+}
+
+
+/* =====================================================
+   FINALIZAR PARTIDA (PROFESOR)
+===================================================== */
+
+async function finalizarPartida(){
+
+    detenerTemporizadorPregunta();
+    detenerTemporizadorGlobal();
+
+    if(intervaloJugadores){
+        clearInterval(intervaloJugadores);
+        intervaloJugadores = null;
+    }
+
+    if(partidaActual){
+        await supabaseClient
+            .from("partidas")
+            .update({ estado: "finalizada" })
+            .eq("id", partidaActual.id);
+
+        partidaActual.estado = "finalizada";
+    }
+
+    document.getElementById("quizProfesor").classList.add("hidden");
+    document.getElementById("esperandoProfesor").classList.add("hidden");
+    document.getElementById("finalProfesor").classList.remove("hidden");
+
+    cargarRankingProfesor();
+
+}
+
+
+/* =====================================================
+   MOSTRAR FINAL ESTUDIANTE
+===================================================== */
+
+async function mostrarFinalEstudiante(){
+
+    detenerTemporizadorPregunta();
+    detenerTemporizadorGlobal();
+
+    document.getElementById("quizEstudiante").classList.add("hidden");
+    document.getElementById("esperandoEstudiante").classList.add("hidden");
+    document.getElementById("finalEstudiante").classList.remove("hidden");
+
+    await cargarRankingEstudiante();
+
+}
+
+
+/* =====================================================
+   RANKINGS Y ESCAPADO HTML
+===================================================== */
+
+async function cargarRankingProfesor(){
+
+    const rankingDiv = document.getElementById("rankingProfesor");
+    if(!rankingDiv || !partidaActual) return;
+
+    const { data: jugadores } = await supabaseClient
+        .from("jugadores")
+        .select("*")
+        .eq("partida_id", partidaActual.id)
+        .order("puntos", { ascending: false });
+
+    renderizarTablaRanking(rankingDiv, jugadores || []);
+
+}
+
+
+async function cargarRankingEstudiante(){
+
+    const rankingDiv = document.getElementById("rankingEstudiante");
+    const miResDiv = document.getElementById("miResultado");
+    if(!partidaActual) return;
+
+    const { data: jugadores } = await supabaseClient
+        .from("jugadores")
+        .select("*")
+        .eq("partida_id", partidaActual.id)
+        .order("puntos", { ascending: false });
+
+    const lista = jugadores || [];
+
+    if(jugadorActual && miResDiv){
+        const pos = lista.findIndex(j => j.id === jugadorActual.id) + 1;
+        const datosYo = lista.find(j => j.id === jugadorActual.id) || jugadorActual;
+
+        let medalla = pos === 1 ? "🥇" : pos === 2 ? "🥈" : pos === 3 ? "🥉" : "🎯";
+        miResDiv.innerHTML = medalla + " Posición #" + pos +
+            "<br><small style='font-size:18px; color:#555;'>" +
+            (datosYo.puntos || 0) + " Puntos | " + (datosYo.correctas || 0) + " aciertos</small>";
+    }
+
+    if(rankingDiv){
+        renderizarTablaRanking(rankingDiv, lista);
+    }
+
+}
+
+
+function renderizarTablaRanking(contenedor, jugadores){
+
+    contenedor.innerHTML = "";
+
+    jugadores.forEach((j, index) => {
+        const item = document.createElement("div");
+        item.className = "ranking-item";
+
+        let posIcono = "#" + (index + 1);
+        if(index === 0) posIcono = "🥇";
+        if(index === 1) posIcono = "🥈";
+        if(index === 2) posIcono = "🥉";
+
+        item.innerHTML = `
+            <div class="posicion">${posIcono}</div>
+            <div class="nombre-ranking">${escapeHtml(j.nombre)}</div>
+            <div class="puntos-ranking">⚡ ${j.puntos || 0} pts</div>
+            <div class="correctas-ranking">✅ ${j.correctas || 0}</div>
+        `;
+
+        contenedor.appendChild(item);
+    });
+
+}
+
+
+function escapeHtml(str){
+
+    if(!str) return "";
     return String(str)
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
-}
 
-
-/* =====================================================
-   MONITOREO DE ESTADO (ESTUDIANTE)
-===================================================== */
-
-function iniciarMonitoreoPartidaEstudiante() {
-    if (intervaloEstadoPartida) clearInterval(intervaloEstadoPartida);
-
-    intervaloEstadoPartida = setInterval(async () => {
-        if (!partidaActual) return;
-
-        const { data: partida, error } = await supabaseClient
-            .from("partidas")
-            .select("*")
-            .eq("id", partidaActual.id)
-            .single();
-
-        if (error || !partida) return;
-
-        partidaActual = partida;
-
-        if (partida.estado === "jugando") {
-            const esperandoEst = document.getElementById("esperandoEstudiante");
-            const quizEst = document.getElementById("quizEstudiante");
-
-            if (!esperandoEst.classList.contains("hidden")) {
-                esperandoEst.classList.add("hidden");
-                quizEst.classList.remove("hidden");
-                iniciarTemporizadorGlobal();
-            }
-
-            if (partida.pregunta_actual !== preguntaMostrada) {
-                preguntaMostrada = partida.pregunta_actual;
-                mostrarPreguntaEstudiante(partida.pregunta_actual);
-            }
-        } else if (partida.estado === "finalizado") {
-            clearInterval(intervaloEstadoPartida);
-            detenerTemporizadorPregunta();
-
-            document.getElementById("quizEstudiante").classList.add("hidden");
-            document.getElementById("esperandoEstudiante").classList.add("hidden");
-            document.getElementById("finalEstudiante").classList.remove("hidden");
-
-            mostrarRankingFinal();
-        }
-    }, 1000);
-}
-
-
-/* =====================================================
-   MOSTRAR PREGUNTA (ESTUDIANTE)
-===================================================== */
-
-function mostrarPreguntaEstudiante(numero) {
-    respuestaEnviada = false;
-
-    const indice = numero - 1;
-    const pregunta = preguntas[indice];
-
-    if (!pregunta) return;
-
-    document.getElementById("numeroPregunta").textContent =
-        "Pregunta " + numero + " de " + preguntas.length;
-
-    document.getElementById("preguntaEstudiante").textContent =
-        pregunta.pregunta;
-
-    const botones = document.querySelectorAll(".opcion");
-    const letras = ["A", "B", "C", "D"];
-    const clavesOpciones = ["opcion_a", "opcion_b", "opcion_c", "opcion_d"];
-
-    botones.forEach((btn, i) => {
-        btn.disabled = false;
-        btn.style.opacity = "1";
-        const textoOpcion = pregunta[clavesOpciones[i]];
-        btn.textContent = textoOpcion ? `${letras[i]}: ${textoOpcion}` : letras[i];
-    });
-
-    const res = document.getElementById("resultadoRespuesta");
-    if (res) {
-        res.textContent = "";
-        res.className = "resultado";
-    }
-
-    iniciarTemporizadorPregunta();
-}
-
-
-/* =====================================================
-   ENVIAR RESPUESTA (ESTUDIANTE)
-===================================================== */
-
-async function responder(opcion) {
-    if (respuestaEnviada || !partidaActual || !jugadorActual) return;
-
-    respuestaEnviada = true;
-
-    const botones = document.querySelectorAll(".opcion");
-    botones.forEach(b => b.disabled = true);
-
-    const transcurrido = Math.floor((Date.now() - inicioPregunta) / 1000);
-    const tiempoRestante = Math.max(0, DURACION_PREGUNTA - transcurrido);
-
-    const indice = Number(partidaActual.pregunta_actual) - 1;
-    const pregunta = preguntas[indice];
-
-    const esCorrecta =
-        pregunta &&
-        pregunta.correcta &&
-        pregunta.correcta.trim().toUpperCase() === opcion.trim().toUpperCase();
-
-    let puntosGanados = 0;
-
-    if (esCorrecta) {
-        puntosGanados = Math.round(500 + (tiempoRestante / DURACION_PREGUNTA) * 500);
-    }
-
-    const res = document.getElementById("resultadoRespuesta");
-
-    if (esCorrecta) {
-        res.textContent = `🎯 ¡Correcto! +${puntosGanados} pts`;
-        res.className = "resultado exito";
-    } else {
-        const correctaTexto = pregunta ? pregunta.correcta : "";
-        res.textContent = `❌ Incorrecto. La respuesta era ${correctaTexto}`;
-        res.className = "resultado error";
-    }
-
-    if (esCorrecta) {
-        const nuevosPuntos = (jugadorActual.puntos || 0) + puntosGanados;
-        const nuevasCorrectas = (jugadorActual.correctas || 0) + 1;
-
-        const { data, error } = await supabaseClient
-            .from("jugadores")
-            .update({
-                puntos: nuevosPuntos,
-                correctas: nuevasCorrectas
-            })
-            .eq("id", jugadorActual.id)
-            .select()
-            .single();
-
-        if (!error && data) {
-            jugadorActual = data;
-        }
-    }
-}
-
-
-/* =====================================================
-   TEMPORIZADOR GLOBAL
-===================================================== */
-
-function iniciarTemporizadorGlobal() {
-    if (intervaloGlobal) clearInterval(intervaloGlobal);
-
-    const tiempoInicio = Date.now();
-
-    intervaloGlobal = setInterval(() => {
-        const transcurrido = Math.floor((Date.now() - tiempoInicio) / 1000);
-        const restante = DURACION_PARTIDA - transcurrido;
-
-        const min = String(Math.floor(Math.max(0, restante) / 60)).padStart(2, "0");
-        const sec = String(Math.max(0, restante) % 60).padStart(2, "0");
-        const texto = `⏳ ${min}:${sec}`;
-
-        const tempProf = document.getElementById("temporizadorProfesor");
-        const tempEst = document.getElementById("temporizadorEstudiante");
-
-        if (tempProf) tempProf.textContent = texto;
-        if (tempEst) tempEst.textContent = texto;
-
-        if (restante <= 0) {
-            clearInterval(intervaloGlobal);
-            if (partidaActual && partidaActual.estado === "jugando") {
-                finalizarPartida();
-            }
-        }
-    }, 1000);
-}
-
-
-/* =====================================================
-   FINALIZAR PARTIDA
-===================================================== */
-
-async function finalizarPartida() {
-    detenerTemporizadorPregunta();
-
-    if (intervaloGlobal) clearInterval(intervaloGlobal);
-    if (intervaloJugadores) clearInterval(intervaloJugadores);
-    if (intervaloEstadoPartida) clearInterval(intervaloEstadoPartida);
-
-    if (partidaActual) {
-        await supabaseClient
-            .from("partidas")
-            .update({ estado: "finalizado" })
-            .eq("id", partidaActual.id);
-    }
-
-    document.getElementById("quizProfesor").classList.add("hidden");
-    document.getElementById("finalProfesor").classList.remove("hidden");
-
-    await mostrarRankingFinal();
-}
-
-
-/* =====================================================
-   RANKING FINAL
-===================================================== */
-
-async function mostrarRankingFinal() {
-    if (!partidaActual) return;
-
-    const { data: jugadores, error } = await supabaseClient
-        .from("jugadores")
-        .select("*")
-        .eq("partida_id", partidaActual.id)
-        .order("puntos", { ascending: false });
-
-    if (error || !jugadores) return;
-
-    const htmlRanking = jugadores.map((j, index) => {
-        const medalla = index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : `#${index + 1}`;
-        return `
-            <div class="ranking-item">
-                <div class="posicion">${medalla}</div>
-                <div class="nombre-ranking">${escapeHtml(j.nombre)}</div>
-                <div class="puntos-ranking">${j.puntos} pts</div>
-                <div class="correctas-ranking">✅ ${j.correctas}</div>
-            </div>
-        `;
-    }).join("");
-
-    const rankingProf = document.getElementById("rankingProfesor");
-    if (rankingProf) rankingProf.innerHTML = htmlRanking;
-
-    const rankingEst = document.getElementById("rankingEstudiante");
-    if (rankingEst) rankingEst.innerHTML = htmlRanking;
-
-    if (jugadorActual) {
-        const miRes = document.getElementById("miResultado");
-        const pos = jugadores.findIndex(j => j.id === jugadorActual.id) + 1;
-        if (miRes) {
-            miRes.textContent = pos > 0 
-                ? `Quedaste en el puesto #${pos} con ${jugadorActual.puntos || 0} puntos.`
-                : `Obtuviste ${jugadorActual.puntos || 0} puntos.`;
-        }
-    }
 }
 
 </script>
+
 </body>
+
 </html>
